@@ -1,0 +1,145 @@
+const mongoose = require('mongoose');
+
+const jobSchema = new mongoose.Schema({
+    postedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    jobType: {
+        type: String,
+        enum: ['employer-seeking-driver', 'driver-seeking-job'],
+        required: true
+    },
+    title: {
+        type: String,
+        required: [true, 'Ýlan baþlýðý gereklidir'],
+        trim: true,
+        maxlength: [100, 'Baþlýk 100 karakterden uzun olamaz']
+    },
+    description: {
+        type: String,
+        required: [true, 'Açýklama gereklidir'],
+        maxlength: [2000, 'Açýklama 2000 karakterden uzun olamaz']
+    },
+    route: {
+        from: {
+            city: {
+                type: String,
+                required: true
+            },
+            district: String,
+            coordinates: {
+                lat: Number,
+                lng: Number
+            }
+        },
+        to: {
+            city: {
+                type: String,
+                required: true
+            },
+            district: String,
+            coordinates: {
+                lat: Number,
+                lng: Number
+            }
+        },
+        distance: Number
+    },
+    loadDetails: {
+        type: {
+            type: String,
+            enum: ['Parsiyel', 'Konteyner', 'Dorse', 'Frigo', 'Tanker', 'Diðer']
+        },
+        weight: String,
+        dimensions: {
+            length: Number,
+            width: Number,
+            height: Number
+        },
+        specialRequirements: [String]
+    },
+    vehicleRequirements: {
+        type: {
+            type: String,
+            enum: ['Týr', 'Kamyon', 'Çekici', 'Kamyonet', 'Frigo', 'Tanker']
+        },
+        minCapacity: Number,
+        features: [String]
+    },
+    schedule: {
+        startDate: {
+            type: Date,
+            required: true
+        },
+        endDate: Date,
+        flexibility: {
+            type: String,
+            enum: ['exact', 'flexible', 'negotiable'],
+            default: 'flexible'
+        }
+    },
+    payment: {
+        amount: Number,
+        currency: {
+            type: String,
+            default: 'TRY'
+        },
+        paymentType: {
+            type: String,
+            enum: ['fixed', 'per-km', 'negotiable'],
+            default: 'negotiable'
+        },
+        paymentMethod: {
+            type: String,
+            enum: ['cash', 'bank-transfer', 'check', 'other'],
+            default: 'bank-transfer'
+        }
+    },
+    status: {
+        type: String,
+        enum: ['active', 'in-progress', 'completed', 'cancelled', 'expired'],
+        default: 'active'
+    },
+    bids: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Bid'
+    }],
+    acceptedBid: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Bid'
+    },
+    views: {
+        type: Number,
+        default: 0
+    },
+    featured: {
+        type: Boolean,
+        default: false
+    },
+    expiresAt: {
+        type: Date,
+        default: function () {
+            return new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+        }
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+}, {
+    timestamps: true
+});
+
+// Indexes for better query performance
+jobSchema.index({ 'route.from.city': 1, 'route.to.city': 1 });
+jobSchema.index({ status: 1, createdAt: -1 });
+jobSchema.index({ postedBy: 1 });
+jobSchema.index({ expiresAt: 1 });
+
+module.exports = mongoose.model('Job', jobSchema);
