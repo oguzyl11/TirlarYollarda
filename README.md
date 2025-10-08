@@ -1,5 +1,7 @@
 # TırlarYollarda - Tırcı İş İlanları Platformu
 
+![CI](https://github.com/oguzyl11/TirlarYollarda/actions/workflows/ci.yml/badge.svg)
+
 Tırcılar ve lojistik şirketleri için modern bir iş bulma platformu. Bu platform, tırcıların iş bulmasını ve lojistik şirketlerinin güvenilir tırcı bulmasını kolaylaştırır.
 
 ## 🚀 Özellikler
@@ -126,6 +128,8 @@ npm start
 ```
 
 Frontend http://localhost:3000 adresinde çalışacak.
+
+> Not: Frontend `package.json` içinde proxy `http://localhost:5000` olarak ayarlı olduğu için backend'in 5000 portunda çalışıyor olması gerekir.
 
 ## 📚 API Endpoints
 
