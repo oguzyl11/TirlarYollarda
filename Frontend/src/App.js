@@ -32,47 +32,79 @@ const queryClient = new QueryClient({
   },
 });
 
+// Layout component for pages that need Navbar and Footer
+const Layout = ({ children }) => (
+  <div className="min-h-screen flex flex-col">
+    <Navbar />
+    <main className="flex-1">
+      {children}
+    </main>
+    <Footer />
+  </div>
+);
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-1">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/jobs" element={<Jobs />} />
-                <Route path="/jobs/:id" element={<JobDetails />} />
-                
-                {/* Protected Routes */}
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/create-job" element={
-                  <ProtectedRoute>
-                    <CreateJob />
-                  </ProtectedRoute>
-                } />
-                <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } />
-                <Route path="/messages" element={
-                  <ProtectedRoute>
-                    <Messages />
-                  </ProtectedRoute>
-                } />
-              </Routes>
-            </main>
-            <Footer />
-            <Toaster position="top-right" />
-          </div>
+          <Routes>
+            {/* Home page has its own layout */}
+            <Route path="/" element={<Home />} />
+            
+            {/* Other pages use the standard layout */}
+            <Route path="/login" element={
+              <Layout>
+                <Login />
+              </Layout>
+            } />
+            <Route path="/register" element={
+              <Layout>
+                <Register />
+              </Layout>
+            } />
+            <Route path="/jobs" element={
+              <Layout>
+                <Jobs />
+              </Layout>
+            } />
+            <Route path="/jobs/:id" element={
+              <Layout>
+                <JobDetails />
+              </Layout>
+            } />
+            
+            {/* Protected Routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/create-job" element={
+              <ProtectedRoute>
+                <Layout>
+                  <CreateJob />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Profile />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/messages" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Messages />
+                </Layout>
+              </ProtectedRoute>
+            } />
+          </Routes>
+          <Toaster position="top-right" />
         </Router>
       </AuthProvider>
     </QueryClientProvider>
