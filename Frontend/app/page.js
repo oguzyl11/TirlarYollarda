@@ -87,7 +87,7 @@ export default function Home() {
                   placeholder="İş ara... (örn: İstanbul-Ankara)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 outline-none text-gray-700"
+                  className="flex-1 outline-none text-gray-600"
                 />
               </div>
               <div className="flex-1 flex items-center space-x-3 pr-3">
@@ -97,7 +97,7 @@ export default function Home() {
                   placeholder="Şehir"
                   value={searchCity}
                   onChange={(e) => setSearchCity(e.target.value)}
-                  className="flex-1 outline-none text-gray-700"
+                  className="flex-1 outline-none text-gray-600"
                 />
               </div>
               <button type="submit" className="btn-primary whitespace-nowrap">

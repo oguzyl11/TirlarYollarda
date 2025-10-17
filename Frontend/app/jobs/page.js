@@ -2,20 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import {
-  Search,
-  MapPin,
-  SlidersHorizontal,
-} from 'lucide-react';
-
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import JobCard from '../../components/JobCard';
+import { Search, MapPin, Package, Calendar, DollarSign, SlidersHorizontal, X } from 'lucide-react';
 import { jobAPI } from '../../lib/api';
 
 export default function JobsPage() {
   const searchParams = useSearchParams();
-
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -28,7 +22,6 @@ export default function JobsPage() {
     maxAmount: searchParams.get('maxAmount') || '',
     startDate: searchParams.get('startDate') || ''
   });
-
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 12,
@@ -48,8 +41,8 @@ export default function JobsPage() {
         page: pagination.page,
         limit: pagination.limit
       };
-
-      // Boş filtreleri kaldır
+      
+      // Remove empty filters
       Object.keys(params).forEach(key => {
         if (!params[key]) delete params[key];
       });
@@ -103,7 +96,6 @@ export default function JobsPage() {
         {/* Search Bar */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-3">
-            {/* Arama */}
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -114,8 +106,6 @@ export default function JobsPage() {
                 className="input-field pl-10"
               />
             </div>
-
-            {/* Şehir */}
             <div className="flex-1 relative">
               <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -126,8 +116,6 @@ export default function JobsPage() {
                 className="input-field pl-10"
               />
             </div>
-
-            {/* Filtre butonu */}
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="btn-secondary flex items-center space-x-2"
@@ -148,20 +136,13 @@ export default function JobsPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-900">Detaylı Filtreler</h3>
-              <button
-                onClick={clearFilters}
-                className="text-sm text-blue-600 hover:text-blue-700"
-              >
+              <button onClick={clearFilters} className="text-sm text-blue-600 hover:text-blue-700">
                 Temizle
               </button>
             </div>
-
             <div className="grid md:grid-cols-4 gap-4">
-              {/* İlan Tipi */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  İlan Tipi
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">İlan Tipi</label>
                 <select
                   value={filters.jobType}
                   onChange={(e) => handleFilterChange('jobType', e.target.value)}
@@ -173,11 +154,8 @@ export default function JobsPage() {
                 </select>
               </div>
 
-              {/* Yük Türü */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Yük Türü
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Yük Türü</label>
                 <select
                   value={filters.loadType}
                   onChange={(e) => handleFilterChange('loadType', e.target.value)}
@@ -192,11 +170,8 @@ export default function JobsPage() {
                 </select>
               </div>
 
-              {/* Min. Fiyat */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Min. Fiyat (₺)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Min. Fiyat (₺)</label>
                 <input
                   type="number"
                   placeholder="0"
@@ -206,20 +181,95 @@ export default function JobsPage() {
                 />
               </div>
 
-              {/* Max. Fiyat */}
+             <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">Max. Fiyat (₺)</label>
+  <input
+    type="number"
+    placeholder="100000"
+    value={filters.maxAmount}
+    onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
+    className="input-field"
+  />
+</div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Max. Fiyat (₺)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Başlangıç Tarihi</label>
                 <input
-                  type="number"
-                  placeholder="100000"
-                  value={filters.maxAmount}
-                  onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
+                  type="date"
+                  value={filters.startDate}
+                  onChange={(e) => handleFilterChange('startDate', e.target.value)}
                   className="input-field"
                 />
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Jobs Grid */}
+        {loading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="card p-6 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+                <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+              </div>
+            ))}
+          </div>
+        ) : jobs.length > 0 ? (
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {jobs.map(job => (
+                <JobCard key={job._id} job={job} />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {pagination.pages > 1 && (
+              <div className="flex justify-center items-center space-x-2 mt-8">
+                <button
+                  onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+                  disabled={pagination.page === 1}
+                  className="btn-secondary disabled:opacity-50"
+                >
+                  Önceki
+                </button>
+                <div className="flex space-x-1">
+                  {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setPagination(prev => ({ ...prev, page }))}
+                      className={`w-10 h-10 rounded-lg font-medium ${
+                        pagination.page === page
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.pages, prev.page + 1) }))}
+                  disabled={pagination.page === pagination.pages}
+                  className="btn-secondary disabled:opacity-50"
+                >
+                  Sonraki
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <Search className="w-16 h-16 mx-auto" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">İlan bulunamadı</h3>
+            <p className="text-gray-600 mb-4">Arama kriterlerinizi değiştirip tekrar deneyin</p>
+            <button onClick={clearFilters} className="btn-primary">
+              Filtreleri Temizle
+            </button>
           </div>
         )}
       </div>
