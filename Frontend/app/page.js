@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, MapPin, Truck, Package, Star, TrendingUp, Users, Building2, ChevronRight, Clock, DollarSign } from 'lucide-react';
 import { jobAPI, userAPI } from '../lib/api';
+import Header from '../components/Header';
 
 export default function Home() {
   const [featuredJobs, setFeaturedJobs] = useState([]);
@@ -35,42 +36,14 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center space-x-2">
-              <Truck className="w-8 h-8 text-primary-500" />
-              <span className="text-xl font-bold text-gray-900">TırlarYollarda</span>
-            </Link>
-            <nav className="hidden md:flex items-center space-x-6">
-              <Link href="/jobs" className="text-gray-600 hover:text-primary-500 transition">
-                İlanlar
-              </Link>
-              <Link href="/companies" className="text-gray-600 hover:text-primary-500 transition">
-                Şirketler
-              </Link>
-              <Link href="/drivers" className="text-gray-600 hover:text-primary-500 transition">
-                Şoförler
-              </Link>
-            </nav>
-            <div className="flex items-center space-x-3">
-              <Link href="/login" className="text-gray-600 hover:text-primary-500 transition font-medium">
-                Giriş Yap
-              </Link>
-              <Link href="/register" className="btn-primary">
-                Kayıt Ol
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero Section with Search */}
-      <section className="bg-gradient-to-br from-primary-50 to-white py-16">
+      <section className="bg-gradient-to-br from-blue-50 to-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Nakliyat Sektörünün <span className="text-primary-500">Buluşma Noktası</span>
+              Nakliyat Sektörünün <span className="text-blue-600">Buluşma Noktası</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Binlerce şirket ve şoför TırlarYollarda'da işbirliği yapıyor
@@ -112,7 +85,7 @@ export default function Home() {
               <Link
                 key={filter}
                 href={`/jobs?loadType=${filter}`}
-                className="px-4 py-2 bg-white rounded-full text-sm text-gray-600 hover:text-primary-500 hover:bg-primary-50 transition border border-gray-200"
+                className="px-4 py-2 bg-white rounded-full text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition border border-gray-200"
               >
                 {filter}
               </Link>
@@ -126,19 +99,19 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary-500 mb-1">15,000+</div>
+              <div className="text-3xl font-bold text-blue-600 mb-1">15,000+</div>
               <div className="text-gray-600 text-sm">Aktif Kullanıcı</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary-500 mb-1">8,932</div>
+              <div className="text-3xl font-bold text-blue-600 mb-1">8,932</div>
               <div className="text-gray-600 text-sm">Tamamlanan İş</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary-500 mb-1">4.8/5</div>
+              <div className="text-3xl font-bold text-blue-600 mb-1">4.8/5</div>
               <div className="text-gray-600 text-sm">Memnuniyet</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary-500 mb-1">1,247</div>
+              <div className="text-3xl font-bold text-blue-600 mb-1">1,247</div>
               <div className="text-gray-600 text-sm">Aktif İlan</div>
             </div>
           </div>
@@ -153,7 +126,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-gray-900 mb-1">Öne Çıkan İlanlar</h2>
               <p className="text-gray-600">En çok görüntülenen ve acil işler</p>
             </div>
-            <Link href="/jobs?featured=true" className="text-primary-500 hover:text-primary-600 font-medium flex items-center space-x-1">
+            <Link href="/jobs?featured=true" className="text-blue-600 hover:text-blue-700 font-medium flex items-center space-x-1">
               <span>Tümünü Gör</span>
               <ChevronRight className="w-4 h-4" />
             </Link>
@@ -175,7 +148,7 @@ export default function Home() {
               <h2 className="text-2xl font-bold text-gray-900 mb-1">Yeni Eklenen İlanlar</h2>
               <p className="text-gray-600">Son 24 saatte eklenen işler</p>
             </div>
-            <Link href="/jobs" className="text-primary-500 hover:text-primary-600 font-medium flex items-center space-x-1">
+            <Link href="/jobs" className="text-blue-600 hover:text-blue-700 font-medium flex items-center space-x-1">
               <span>Tümünü Gör</span>
               <ChevronRight className="w-4 h-4" />
             </Link>
@@ -197,18 +170,18 @@ export default function Home() {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
-                  <Building2 className="w-6 h-6 text-primary-500" />
+                  <Building2 className="w-6 h-6 text-blue-600" />
                   <span>Popüler Şirketler</span>
                 </h2>
-                <Link href="/companies" className="text-primary-500 text-sm hover:text-primary-600">
+                <Link href="/companies" className="text-blue-600 text-sm hover:text-blue-700">
                   Tümü
                 </Link>
               </div>
               <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="card p-4 flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                      <Building2 className="w-6 h-6 text-primary-500" />
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Building2 className="w-6 h-6 text-blue-600" />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">Örnek Lojistik A.Ş.</h3>
@@ -230,18 +203,18 @@ export default function Home() {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
-                  <Users className="w-6 h-6 text-primary-500" />
+                  <Users className="w-6 h-6 text-blue-600" />
                   <span>Popüler Şoförler</span>
                 </h2>
-                <Link href="/drivers" className="text-primary-500 text-sm hover:text-primary-600">
+                <Link href="/drivers" className="text-blue-600 text-sm hover:text-blue-700">
                   Tümü
                 </Link>
               </div>
               <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="card p-4 flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                      <Users className="w-6 h-6 text-primary-500" />
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Users className="w-6 h-6 text-blue-600" />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">Mehmet Y.</h3>
@@ -268,7 +241,7 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <Truck className="w-6 h-6 text-primary-500" />
+                <Truck className="w-6 h-6 text-blue-600" />
                 <span className="font-bold text-lg">TırlarYollarda</span>
               </div>
               <p className="text-gray-400 text-sm">
@@ -316,7 +289,7 @@ function JobCard({ job, featured = false }) {
   };
 
   return (
-    <Link href={`/jobs/${job._id}`} className="card p-6 block hover:border-primary-200">
+    <Link href={`/jobs/${job._id}`} className="card p-6 block hover:border-blue-200">
       {featured && (
         <div className="flex items-center space-x-1 text-yellow-600 text-sm font-medium mb-3">
           <TrendingUp className="w-4 h-4" />
@@ -326,7 +299,7 @@ function JobCard({ job, featured = false }) {
       
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 text-lg mb-2 hover:text-primary-500 transition">
+          <h3 className="font-semibold text-gray-900 text-lg mb-2 hover:text-blue-600 transition">
             {job.title}
           </h3>
           <div className="flex items-center space-x-2 text-sm text-gray-600 mb-3">
@@ -341,7 +314,7 @@ function JobCard({ job, featured = false }) {
         </div>
         {job.payment?.amount && (
           <div className="text-right">
-            <div className="text-lg font-bold text-primary-500">{job.payment.amount.toLocaleString('tr-TR')} ₺</div>
+            <div className="text-lg font-bold text-blue-600">{job.payment.amount.toLocaleString('tr-TR')} ₺</div>
           </div>
         )}
       </div>
@@ -365,7 +338,7 @@ function JobCard({ job, featured = false }) {
         <div className="text-xs text-gray-500">
           {job.views || 0} görüntülenme
         </div>
-        <div className="text-primary-500 text-sm font-medium flex items-center space-x-1">
+        <div className="text-blue-600 text-sm font-medium flex items-center space-x-1">
           <span>Detaylar</span>
           <ChevronRight className="w-4 h-4" />
         </div>

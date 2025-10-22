@@ -66,5 +66,12 @@ export const useAuthStore = create((set) => ({
     set({ user: null, token: null, isAuthenticated: false });
   },
 
-  clearError: () => set({ error: null })
+  clearError: () => set({ error: null }),
+
+  updateUser: (updatedUser) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+    set({ user: updatedUser });
+  }
 }));
