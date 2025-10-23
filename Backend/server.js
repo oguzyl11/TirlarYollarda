@@ -12,16 +12,12 @@ const app = express();
 app.use(helmet());
 
 // Allow multiple frontend origins via comma-separated env
-const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:3000')
+const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:3000,http://localhost:3001')
     .split(',')
     .map(o => o.trim());
 
 app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) return callback(null, true);
-        return callback(new Error('Not allowed by CORS'));
-    },
+    origin: ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true
 }));
 

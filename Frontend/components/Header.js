@@ -3,14 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Truck, Menu, X, User, LogOut, Bell, Moon, Sun } from 'lucide-react';
+import { Truck, Menu, X, User, LogOut, Bell } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export default function Header() {
   const router = useRouter();
   const { isAuthenticated, user, logout } = useAuthStore();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -61,14 +60,6 @@ export default function Header() {
 
           {/* Right Side */}
           <div className="flex items-center space-x-4">
-            {/* Dark Mode Toggle */}
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 text-gray-600 hover:text-blue-600 transition rounded-lg hover:bg-gray-100"
-            >
-              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-
             {isAuthenticated ? (
               <>
                 <button className="p-2 text-gray-600 hover:text-blue-600 transition rounded-lg hover:bg-gray-100 relative">
@@ -76,7 +67,7 @@ export default function Header() {
                   <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                 </button>
                 <div className="hidden md:flex items-center space-x-3">
-                  <Link href="/profile" className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+                  <Link href="/dashboard" className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                       <User className="w-5 h-5 text-blue-600" />
                     </div>

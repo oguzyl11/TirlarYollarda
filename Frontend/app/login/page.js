@@ -37,7 +37,10 @@ export default function LoginPage() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    console.log('Giriş yapılıyor:', formData);
     const result = await login(formData);
+    console.log('Giriş sonucu:', result);
+    
     if (result.success) {
       toast.success('Giriş başarılı! Yönlendiriliyorsunuz...');
       setTimeout(() => {

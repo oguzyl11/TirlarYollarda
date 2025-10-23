@@ -1,19 +1,22 @@
 import { create } from 'zustand';
 import { authAPI } from '../lib/api';
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   user: null,
   token: null,
   isAuthenticated: false,
   loading: false,
   error: null,
+  initialized: false,
 
   initAuth: () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !get().initialized) {
       const token = localStorage.getItem('token');
       const user = localStorage.getItem('user');
       if (token && user) {
-        set({ token, user: JSON.parse(user), isAuthenticated: true });
+        set({ token, user: JSON.parse(user), isAuthenticated: true, initialized: true });
+      } else {
+        set({ initialized: true });
       }
     }
   },
@@ -21,17 +24,22 @@ export const useAuthStore = create((set) => ({
   login: async (credentials) => {
     set({ loading: true, error: null });
     try {
+      console.log('AuthStore: Giriş yapılıyor:', credentials);
       const response = await authAPI.login(credentials);
+      console.log('AuthStore: API yanıtı:', response.data);
       const { token, user } = response.data;
 
       if (typeof window !== 'undefined') {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
+        console.log('AuthStore: LocalStorage\'a kaydedildi');
       }
 
       set({ user, token, isAuthenticated: true, loading: false });
+      console.log('AuthStore: State güncellendi');
       return { success: true };
     } catch (error) {
+      console.error('AuthStore: Giriş hatası:', error);
       const errorMessage = error.response?.data?.message || 'Giriş başarısız';
       set({ error: errorMessage, loading: false });
       return { success: false, error: errorMessage };
@@ -63,7 +71,7 @@ export const useAuthStore = create((set) => ({
       localStorage.removeItem('token');
       localStorage.removeItem('user');
     }
-    set({ user: null, token: null, isAuthenticated: false });
+    set({ user: null, token: null, isAuthenticated: false, initialized: false });
   },
 
   clearError: () => set({ error: null }),

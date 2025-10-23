@@ -42,6 +42,13 @@ export default function DashboardPage() {
     loadDashboardData();
   }, [isAuthenticated, router]);
 
+  // Sayfa her görüntülendiğinde verileri yenile
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadDashboardData();
+    }
+  }, []);
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
@@ -62,7 +69,8 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Dashboard verileri yüklenemedi:', error);
-      toast.error('Veriler yüklenirken hata oluştu');
+      console.error('Error response:', error.response?.data);
+      toast.error(error.response?.data?.message || 'Veriler yüklenirken hata oluştu');
     } finally {
       setLoading(false);
     }
@@ -346,11 +354,11 @@ export default function DashboardPage() {
                             <div className="flex items-center space-x-4 text-sm text-gray-500">
                               <div className="flex items-center">
                                 <MapPin className="w-4 h-4 mr-1" />
-                                {job.fromLocation} → {job.toLocation}
+                                {job.route?.from?.city} → {job.route?.to?.city}
                               </div>
                               <div className="flex items-center">
                                 <DollarSign className="w-4 h-4 mr-1" />
-                                {job.budget} TL
+                                {job.payment?.amount} {job.payment?.currency}
                               </div>
                               <div className="flex items-center">
                                 <Users className="w-4 h-4 mr-1" />
@@ -367,6 +375,16 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     ))}
+                    {myJobs.length > 3 && (
+                      <div className="text-center pt-4">
+                        <Link
+                          href="/jobs"
+                          className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                        >
+                          Tümünü Gör ({myJobs.length} iş)
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -408,7 +426,7 @@ export default function DashboardPage() {
                       <span className="text-gray-700">Tekliflerim</span>
                     </Link>
                     <Link
-                      href="/profile"
+                      href="/profile/view"
                       className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       <Settings className="w-5 h-5 text-gray-600 mr-3" />
@@ -432,7 +450,7 @@ export default function DashboardPage() {
                       <span className="text-gray-700">Şoför Bul</span>
                     </Link>
                     <Link
-                      href="/profile"
+                      href="/profile/view"
                       className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       <Settings className="w-5 h-5 text-gray-600 mr-3" />

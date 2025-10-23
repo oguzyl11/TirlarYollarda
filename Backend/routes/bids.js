@@ -22,14 +22,16 @@ router.post('/', auth, [
             });
         }
 
-        const { job, amount, message, proposedStartDate, estimatedDuration } = req.body;
+        const { jobId, proposedAmount, message, estimatedDays } = req.body;
+        const job = jobId;
+        const amount = proposedAmount;
 
         // Check if job exists
         const jobData = await Job.findById(job);
         if (!jobData) {
             return res.status(404).json({
                 success: false,
-                message: 'Ýlan bulunamadý'
+                message: 'ï¿½lan bulunamadï¿½'
             });
         }
 
@@ -45,7 +47,7 @@ router.post('/', auth, [
         if (jobData.postedBy.toString() === req.user.userId) {
             return res.status(400).json({
                 success: false,
-                message: 'Kendi ilanýnýza teklif veremezsiniz'
+                message: 'Kendi ilanï¿½nï¿½za teklif veremezsiniz'
             });
         }
 
@@ -84,14 +86,53 @@ router.post('/', auth, [
 
         res.status(201).json({
             success: true,
-            message: 'Teklif baþarýyla gönderildi',
+            message: 'Teklif baï¿½arï¿½yla gï¿½nderildi',
             data: populatedBid
         });
     } catch (error) {
         console.error('Create bid error:', error);
         res.status(500).json({
             success: false,
-            message: 'Teklif gönderilirken hata oluþtu'
+            message: 'Teklif gï¿½nderilirken hata oluï¿½tu'
+        });
+    }
+});
+
+// @route   GET /api/bids/job/:jobId
+// @desc    Get bids for a specific job
+// @access  Private
+router.get('/job/:jobId', auth, async (req, res) => {
+    try {
+        const job = await Job.findById(req.params.jobId);
+        
+        if (!job) {
+            return res.status(404).json({
+                success: false,
+                message: 'Ä°lan bulunamadÄ±'
+            });
+        }
+
+        // Only job owner can see bids
+        if (job.postedBy.toString() !== req.user.userId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Bu iÅŸlem iÃ§in yetkiniz yok'
+            });
+        }
+
+        const bids = await Bid.find({ job: req.params.jobId })
+            .populate('bidder', 'profile rating')
+            .sort('-createdAt');
+
+        res.json({
+            success: true,
+            data: bids
+        });
+    } catch (error) {
+        console.error('Get job bids error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Teklifler getirilirken hata oluÅŸtu'
         });
     }
 });
@@ -120,7 +161,7 @@ router.get('/my-bids', auth, async (req, res) => {
         console.error('Get my bids error:', error);
         res.status(500).json({
             success: false,
-            message: 'Teklifler getirilirken hata oluþtu'
+            message: 'Teklifler getirilirken hata oluï¿½tu'
         });
     }
 });
@@ -145,7 +186,7 @@ router.patch('/:id/status', auth, [
         if (!bid) {
             return res.status(404).json({
                 success: false,
-                message: 'Teklif bulunamadý'
+                message: 'Teklif bulunamadï¿½'
             });
         }
 
@@ -153,7 +194,7 @@ router.patch('/:id/status', auth, [
         if (bid.job.postedBy.toString() !== req.user.userId) {
             return res.status(403).json({
                 success: false,
-                message: 'Bu iþlem için yetkiniz yok'
+                message: 'Bu iï¿½lem iï¿½in yetkiniz yok'
             });
         }
 
@@ -184,7 +225,7 @@ router.patch('/:id/status', auth, [
         console.error('Update bid status error:', error);
         res.status(500).json({
             success: false,
-            message: 'Teklif durumu güncellenirken hata oluþtu'
+            message: 'Teklif durumu gï¿½ncellenirken hata oluï¿½tu'
         });
     }
 });
@@ -199,7 +240,7 @@ router.delete('/:id', auth, async (req, res) => {
         if (!bid) {
             return res.status(404).json({
                 success: false,
-                message: 'Teklif bulunamadý'
+                message: 'Teklif bulunamadï¿½'
             });
         }
 
@@ -207,14 +248,14 @@ router.delete('/:id', auth, async (req, res) => {
         if (bid.bidder.toString() !== req.user.userId) {
             return res.status(403).json({
                 success: false,
-                message: 'Bu iþlem için yetkiniz yok'
+                message: 'Bu iï¿½lem iï¿½in yetkiniz yok'
             });
         }
 
         if (bid.status !== 'pending') {
             return res.status(400).json({
                 success: false,
-                message: 'Sadece bekleyen teklifler geri çekilebilir'
+                message: 'Sadece bekleyen teklifler geri ï¿½ekilebilir'
             });
         }
 
@@ -223,13 +264,13 @@ router.delete('/:id', auth, async (req, res) => {
 
         res.json({
             success: true,
-            message: 'Teklif geri çekildi'
+            message: 'Teklif geri ï¿½ekildi'
         });
     } catch (error) {
         console.error('Delete bid error:', error);
         res.status(500).json({
             success: false,
-            message: 'Teklif geri çekilirken hata oluþtu'
+            message: 'Teklif geri ï¿½ekilirken hata oluï¿½tu'
         });
     }
 });

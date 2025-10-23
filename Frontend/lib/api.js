@@ -54,12 +54,15 @@ export const jobAPI = {
 export const bidAPI = {
   createBid: (data) => api.post('/bids', data),
   getMyBids: () => api.get('/bids/my-bids'),
+  getJobBids: (jobId) => api.get(`/bids/job/${jobId}`),
   updateBidStatus: (id, status) => api.patch(`/bids/${id}/status`, { status }),
 };
 
 export const userAPI = {
   getProfile: (id) => api.get(`/users/${id}`),
   updateProfile: (data) => api.put('/users/profile', data),
+  getCompanies: () => api.get('/users/companies'),
+  getDrivers: () => api.get('/users/drivers'),
 };
 
 export const reviewAPI = {

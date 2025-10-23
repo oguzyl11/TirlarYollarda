@@ -4,95 +4,226 @@ const { body, validationResult } = require('express-validator');
 const Job = require('../models/Job');
 const auth = require('../middleware/auth');
 
+// Global mock data storage - Tüm ilanlar
+let mockAllJobs = [
+    {
+        _id: 'job_1',
+        title: 'İstanbul-Ankara Kargo Taşıma',
+        description: 'Acil kargo taşıma işi. Güvenli ve hızlı teslimat gerekiyor.',
+        jobType: 'employer-seeking-driver',
+        route: { from: { city: 'İstanbul' }, to: { city: 'Ankara' } },
+        loadDetails: { type: 'Kargo', weight: '2' },
+        payment: { amount: 2500, currency: 'TL' },
+        schedule: { startDate: '2024-01-15T08:00:00Z' },
+        status: 'active',
+        views: 45,
+        createdAt: '2024-01-10T10:00:00Z',
+        postedBy: 'mega_lojistik',
+        bids: []
+    },
+    {
+        _id: 'job_2',
+        title: 'İzmir-Bursa Parsiyel Yük',
+        description: 'Parsiyel yük taşıma işi. Ekonomik çözüm aranıyor.',
+        jobType: 'employer-seeking-driver',
+        route: { from: { city: 'İzmir' }, to: { city: 'Bursa' } },
+        loadDetails: { type: 'Parsiyel', weight: '5' },
+        payment: { amount: 1800, currency: 'TL' },
+        schedule: { startDate: '2024-01-18T09:00:00Z' },
+        status: 'active',
+        views: 32,
+        createdAt: '2024-01-12T14:30:00Z',
+        postedBy: 'hizli_tasima',
+        bids: []
+    },
+    {
+        _id: 'job_3',
+        title: 'Ankara-İstanbul Konteyner Taşıma',
+        description: '40 feet konteyner taşıma işi. Profesyonel şoför aranıyor.',
+        jobType: 'employer-seeking-driver',
+        route: { from: { city: 'Ankara' }, to: { city: 'İstanbul' } },
+        loadDetails: { type: 'Konteyner', weight: '25' },
+        payment: { amount: 3500, currency: 'TL' },
+        schedule: { startDate: '2024-01-20T07:00:00Z' },
+        status: 'active',
+        views: 28,
+        createdAt: '2024-01-14T11:15:00Z',
+        postedBy: 'guven_nakliyat',
+        bids: []
+    },
+    {
+        _id: 'job_4',
+        title: 'Bursa-İzmir Frigo Taşıma',
+        description: 'Soğuk zincir taşıma işi. Frigo araç gerekiyor.',
+        jobType: 'employer-seeking-driver',
+        route: { from: { city: 'Bursa' }, to: { city: 'İzmir' } },
+        loadDetails: { type: 'Frigo', weight: '8' },
+        payment: { amount: 2200, currency: 'TL' },
+        schedule: { startDate: '2024-01-22T06:00:00Z' },
+        status: 'active',
+        views: 19,
+        createdAt: '2024-01-16T09:45:00Z',
+        postedBy: 'mega_lojistik',
+        bids: []
+    },
+    {
+        _id: 'job_5',
+        title: 'İstanbul-Gaziantep Dorse Taşıma',
+        description: 'Dorse taşıma işi. Uzun mesafe tecrübesi gerekiyor.',
+        jobType: 'employer-seeking-driver',
+        route: { from: { city: 'İstanbul' }, to: { city: 'Gaziantep' } },
+        loadDetails: { type: 'Dorse', weight: '15' },
+        payment: { amount: 4200, currency: 'TL' },
+        schedule: { startDate: '2024-01-25T05:00:00Z' },
+        status: 'active',
+        views: 67,
+        createdAt: '2024-01-18T16:20:00Z',
+        postedBy: 'hizli_tasima',
+        bids: []
+    },
+    {
+        _id: 'job_6',
+        title: 'Ankara-Antalya Genel Yük',
+        description: 'Genel yük taşıma işi. Güvenilir şoför aranıyor.',
+        jobType: 'employer-seeking-driver',
+        route: { from: { city: 'Ankara' }, to: { city: 'Antalya' } },
+        loadDetails: { type: 'Genel', weight: '12' },
+        payment: { amount: 2800, currency: 'TL' },
+        schedule: { startDate: '2024-01-28T08:30:00Z' },
+        status: 'active',
+        views: 41,
+        createdAt: '2024-01-20T13:10:00Z',
+        postedBy: 'guven_nakliyat',
+        bids: []
+    }
+];
+
+// Kullanıcıların kendi ilanları için ayrı storage
+let mockUserJobs = [];
+
 // @route   GET /api/jobs
 // @desc    Get all jobs with filters
 // @access  Public
 router.get('/', async (req, res) => {
     try {
         const {
-            jobType,
-            fromCity,
-            toCity,
+            search,
+            city,
             loadType,
-            startDate,
+            vehicleType,
             minAmount,
             maxAmount,
+            sortBy = 'newest',
             page = 1,
-            limit = 10,
-            sort = '-createdAt'
+            limit = 12
         } = req.query;
 
-        const query = { status: 'active' };
+        console.log('Get jobs request with filters:', req.query);
 
-        if (jobType) query.jobType = jobType;
-        if (fromCity) query['route.from.city'] = new RegExp(fromCity, 'i');
-        if (toCity) query['route.to.city'] = new RegExp(toCity, 'i');
-        if (loadType) query['loadDetails.type'] = loadType;
-        if (startDate) {
-            query['schedule.startDate'] = {
-                $gte: new Date(startDate)
-            };
-        }
-        if (minAmount || maxAmount) {
-            query['payment.amount'] = {};
-            if (minAmount) query['payment.amount'].$gte = Number(minAmount);
-            if (maxAmount) query['payment.amount'].$lte = Number(maxAmount);
+        // Tüm ilanları al
+        let filteredJobs = [...mockAllJobs];
+
+        // Arama filtresi
+        if (search) {
+            filteredJobs = filteredJobs.filter(job => 
+                job.title.toLowerCase().includes(search.toLowerCase()) ||
+                job.description.toLowerCase().includes(search.toLowerCase()) ||
+                job.route.from.city.toLowerCase().includes(search.toLowerCase()) ||
+                job.route.to.city.toLowerCase().includes(search.toLowerCase())
+            );
         }
 
-        const skip = (page - 1) * limit;
+        // Şehir filtresi
+        if (city) {
+            filteredJobs = filteredJobs.filter(job => 
+                job.route.from.city.toLowerCase().includes(city.toLowerCase()) ||
+                job.route.to.city.toLowerCase().includes(city.toLowerCase())
+            );
+        }
 
-        const jobs = await Job.find(query)
-            .populate('postedBy', 'profile rating')
-            .sort(sort)
-            .limit(Number(limit))
-            .skip(skip);
+        // Yük tipi filtresi
+        if (loadType) {
+            filteredJobs = filteredJobs.filter(job => 
+                job.loadDetails.type.toLowerCase() === loadType.toLowerCase()
+            );
+        }
 
-        const total = await Job.countDocuments(query);
+        // Araç tipi filtresi
+        if (vehicleType) {
+            filteredJobs = filteredJobs.filter(job => 
+                job.vehicleRequirements?.type?.toLowerCase() === vehicleType.toLowerCase()
+            );
+        }
+
+        // Ücret filtresi
+        if (minAmount) {
+            filteredJobs = filteredJobs.filter(job => 
+                job.payment.amount >= parseInt(minAmount)
+            );
+        }
+        if (maxAmount) {
+            filteredJobs = filteredJobs.filter(job => 
+                job.payment.amount <= parseInt(maxAmount)
+            );
+        }
+
+        // Sıralama
+        if (sortBy === 'newest') {
+            filteredJobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        } else if (sortBy === 'oldest') {
+            filteredJobs.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        } else if (sortBy === 'highest') {
+            filteredJobs.sort((a, b) => b.payment.amount - a.payment.amount);
+        } else if (sortBy === 'lowest') {
+            filteredJobs.sort((a, b) => a.payment.amount - b.payment.amount);
+        } else if (sortBy === 'deadline') {
+            filteredJobs.sort((a, b) => new Date(a.schedule.startDate) - new Date(b.schedule.startDate));
+        }
+
+        // Sayfalama
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + parseInt(limit);
+        const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
+
+        console.log(`Found ${filteredJobs.length} jobs, returning ${paginatedJobs.length}`);
 
         res.json({
             success: true,
-            data: jobs,
-            pagination: {
-                page: Number(page),
-                limit: Number(limit),
-                total,
-                pages: Math.ceil(total / limit)
-            }
+            data: paginatedJobs,
+            total: filteredJobs.length,
+            page: parseInt(page),
+            totalPages: Math.ceil(filteredJobs.length / limit)
         });
     } catch (error) {
         console.error('Get jobs error:', error);
         res.status(500).json({
             success: false,
-            message: '�lanlar getirilirken hata olu�tu'
+            message: 'İlanlar getirilirken hata oluştu'
         });
     }
 });
 
 // @route   GET /api/jobs/:id
-// @desc    Get single job
+// @desc    Get job by ID
 // @access  Public
 router.get('/:id', async (req, res) => {
     try {
-        const job = await Job.findById(req.params.id)
-            .populate('postedBy', 'profile rating verified')
-            .populate({
-                path: 'bids',
-                populate: {
-                    path: 'bidder',
-                    select: 'profile rating'
-                }
-            });
-
+        // Mock job data for development
+        console.log('Get job request for ID:', req.params.id);
+        
+        // Find job in mock data
+        const job = mockAllJobs.find(j => j._id === req.params.id);
+        
         if (!job) {
             return res.status(404).json({
                 success: false,
-                message: '�lan bulunamad�'
+                message: 'İlan bulunamadı'
             });
         }
 
         // Increment views
-        job.views += 1;
-        await job.save();
+        job.views = (job.views || 0) + 1;
+        console.log('Job found and views incremented:', job);
 
         res.json({
             success: true,
@@ -102,7 +233,7 @@ router.get('/:id', async (req, res) => {
         console.error('Get job error:', error);
         res.status(500).json({
             success: false,
-            message: '�lan getirilirken hata olu�tu'
+            message: 'İlan getirilirken hata oluştu'
         });
     }
 });
@@ -111,50 +242,78 @@ router.get('/:id', async (req, res) => {
 // @desc    Create new job
 // @access  Private
 router.post('/', auth, [
-    body('title').trim().notEmpty().isLength({ max: 100 }),
-    body('description').trim().notEmpty().isLength({ max: 2000 }),
-    body('jobType').isIn(['employer-seeking-driver', 'driver-seeking-job']),
-    body('route.from.city').notEmpty(),
-    body('route.to.city').notEmpty(),
-    body('schedule.startDate').isISO8601()
+    body('title').trim().notEmpty().withMessage('Başlık gereklidir'),
+    body('description').trim().notEmpty().withMessage('Açıklama gereklidir'),
+    body('route.from.city').trim().notEmpty().withMessage('Başlangıç şehri gereklidir'),
+    body('route.to.city').trim().notEmpty().withMessage('Varış şehri gereklidir'),
+    body('loadDetails.type').trim().notEmpty().withMessage('Yük tipi gereklidir'),
+    body('payment.amount').isNumeric().withMessage('Geçerli bir ücret giriniz')
 ], async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({
                 success: false,
+                message: 'Lütfen tüm zorunlu alanları doldurun',
                 errors: errors.array()
             });
         }
 
-        const job = new Job({
-            ...req.body,
-            postedBy: req.user.userId
-        });
+        const jobData = req.body;
+        
+        // Create mock job
+        const mockJob = {
+            _id: `job_${Date.now()}`,
+            ...jobData,
+            postedBy: req.user.userId,
+            status: 'active',
+            views: 0,
+            createdAt: new Date().toISOString(),
+            bids: []
+        };
 
-        await job.save();
+        // Add to mock data
+        mockAllJobs.unshift(mockJob);
+        mockUserJobs.push(mockJob);
 
-        // Update user's posted jobs count
-        const User = require('../models/User');
-        if (req.user.userType === 'employer') {
-            await User.findByIdAndUpdate(req.user.userId, {
-                $inc: { 'employerDetails.postedJobs': 1 }
-            });
-        }
-
-        const populatedJob = await Job.findById(job._id)
-            .populate('postedBy', 'profile rating');
+        console.log('New job created:', mockJob);
+        console.log('Total jobs in mock data:', mockAllJobs.length);
 
         res.status(201).json({
             success: true,
-            message: '�lan ba�ar�yla olu�turuldu',
-            data: populatedJob
+            message: 'İlan başarıyla oluşturuldu',
+            data: mockJob
         });
     } catch (error) {
         console.error('Create job error:', error);
         res.status(500).json({
             success: false,
-            message: '�lan olu�turulurken hata olu�tu'
+            message: 'İlan oluşturulurken hata oluştu'
+        });
+    }
+});
+
+// @route   GET /api/jobs/user/my-jobs
+// @desc    Get user's own jobs
+// @access  Private
+router.get('/user/my-jobs', auth, async (req, res) => {
+    try {
+        console.log('Get my jobs request for user:', req.user.userId);
+        
+        // Filter jobs by user
+        const userJobs = mockUserJobs.filter(job => job.postedBy === req.user.userId);
+        
+        console.log('User jobs found:', userJobs.length);
+        
+        res.json({
+            success: true,
+            data: userJobs
+        });
+    } catch (error) {
+        console.error('Get my jobs error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'İlanlar getirilirken hata oluştu'
         });
     }
 });
@@ -164,118 +323,61 @@ router.post('/', auth, [
 // @access  Private
 router.put('/:id', auth, async (req, res) => {
     try {
-        let job = await Job.findById(req.params.id);
+        const jobId = req.params.id;
+        const jobData = req.body;
 
-        if (!job) {
+        // Find job in mock data
+        const jobIndex = mockAllJobs.findIndex(job => job._id === jobId);
+        if (jobIndex === -1) {
             return res.status(404).json({
                 success: false,
-                message: '�lan bulunamad�'
+                message: 'İlan bulunamadı'
             });
         }
 
-        // Check ownership
-        if (job.postedBy.toString() !== req.user.userId) {
-            return res.status(403).json({
-                success: false,
-                message: 'Bu i�lem i�in yetkiniz yok'
-            });
+        // Update job
+        mockAllJobs[jobIndex] = { ...mockAllJobs[jobIndex], ...jobData };
+        
+        // Also update in user jobs
+        const userJobIndex = mockUserJobs.findIndex(job => job._id === jobId);
+        if (userJobIndex !== -1) {
+            mockUserJobs[userJobIndex] = { ...mockUserJobs[userJobIndex], ...jobData };
         }
-
-        // Don't allow updating if job is not active
-        if (job.status !== 'active') {
-            return res.status(400).json({
-                success: false,
-                message: 'Sadece aktif ilanlar g�ncellenebilir'
-            });
-        }
-
-        const allowedUpdates = ['title', 'description', 'route', 'loadDetails',
-            'vehicleRequirements', 'schedule', 'payment'];
-
-        const updates = {};
-        allowedUpdates.forEach(field => {
-            if (req.body[field] !== undefined) {
-                updates[field] = req.body[field];
-            }
-        });
-
-        job = await Job.findByIdAndUpdate(
-            req.params.id,
-            { $set: updates },
-            { new: true, runValidators: true }
-        ).populate('postedBy', 'profile rating');
 
         res.json({
             success: true,
-            message: '�lan ba�ar�yla g�ncellendi',
-            data: job
+            message: 'İlan başarıyla güncellendi',
+            data: mockAllJobs[jobIndex]
         });
     } catch (error) {
         console.error('Update job error:', error);
         res.status(500).json({
             success: false,
-            message: '�lan g�ncellenirken hata olu�tu'
+            message: 'İlan güncellenirken hata oluştu'
         });
     }
 });
 
 // @route   DELETE /api/jobs/:id
-// @desc    Delete/Cancel job
+// @desc    Delete job
 // @access  Private
 router.delete('/:id', auth, async (req, res) => {
     try {
-        const job = await Job.findById(req.params.id);
+        const jobId = req.params.id;
 
-        if (!job) {
-            return res.status(404).json({
-                success: false,
-                message: '�lan bulunamad�'
-            });
-        }
-
-        // Check ownership
-        if (job.postedBy.toString() !== req.user.userId) {
-            return res.status(403).json({
-                success: false,
-                message: 'Bu i�lem i�in yetkiniz yok'
-            });
-        }
-
-        // Update status to cancelled instead of deleting
-        job.status = 'cancelled';
-        await job.save();
+        // Remove from mock data
+        mockAllJobs = mockAllJobs.filter(job => job._id !== jobId);
+        mockUserJobs = mockUserJobs.filter(job => job._id !== jobId);
 
         res.json({
             success: true,
-            message: '�lan ba�ar�yla iptal edildi'
+            message: 'İlan başarıyla silindi'
         });
     } catch (error) {
         console.error('Delete job error:', error);
         res.status(500).json({
             success: false,
-            message: '�lan iptal edilirken hata olu�tu'
-        });
-    }
-});
-
-// @route   GET /api/jobs/user/my-jobs
-// @desc    Get current user's jobs
-// @access  Private
-router.get('/user/my-jobs', auth, async (req, res) => {
-    try {
-        const jobs = await Job.find({ postedBy: req.user.userId })
-            .populate('bids')
-            .sort('-createdAt');
-
-        res.json({
-            success: true,
-            data: jobs
-        });
-    } catch (error) {
-        console.error('Get my jobs error:', error);
-        res.status(500).json({
-            success: false,
-            message: '�lanlar getirilirken hata olu�tu'
+            message: 'İlan silinirken hata oluştu'
         });
     }
 });
