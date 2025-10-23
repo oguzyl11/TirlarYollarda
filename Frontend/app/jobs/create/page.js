@@ -20,7 +20,7 @@ import toast, { Toaster } from 'react-hot-toast';
 
 export default function CreateJobPage() {
   const router = useRouter();
-  const { user, isAuthenticated, initAuth } = useAuthStore();
+  const { user, isAuthenticated, initAuth, initialized } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -55,11 +55,20 @@ export default function CreateJobPage() {
 
   useEffect(() => {
     initAuth();
+  }, []);
+
+  useEffect(() => {
+    // Auth durumu henüz initialize edilmemişse bekle
+    if (!initialized) {
+      return;
+    }
+    
+    // Auth durumu belirlendikten sonra kontrol et
     if (!isAuthenticated || user?.userType !== 'employer') {
       router.push('/login');
       return;
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, initialized, router]);
 
   const handleInputChange = (field, value) => {
     if (field.includes('.')) {
@@ -96,17 +105,54 @@ export default function CreateJobPage() {
 
     try {
       setLoading(true);
-      console.log('Sending job data:', formData);
-      const response = await jobAPI.createJob(formData);
+      
+      // Form verilerini temizle ve düzenle
+      const cleanedData = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        jobType: formData.jobType || 'employer-seeking-driver',
+        route: {
+          from: {
+            city: formData.route.from.city.trim(),
+            address: formData.route.from.address?.trim() || ''
+          },
+          to: {
+            city: formData.route.to.city.trim(),
+            address: formData.route.to.address?.trim() || ''
+          }
+        },
+        loadDetails: {
+          type: formData.loadDetails.type || '',
+          weight: formData.loadDetails.weight || '',
+          dimensions: formData.loadDetails.dimensions || {},
+          description: formData.loadDetails.description?.trim() || ''
+        },
+        vehicleRequirements: {
+          type: formData.vehicleRequirements.type || '',
+          capacity: formData.vehicleRequirements.capacity || '',
+          specialRequirements: formData.vehicleRequirements.specialRequirements?.trim() || ''
+        },
+        schedule: {
+          startDate: formData.schedule.startDate || new Date().toISOString(),
+          endDate: formData.schedule.endDate || '',
+          flexible: formData.schedule.flexible || false
+        },
+        payment: {
+          amount: formData.payment.amount ? parseFloat(formData.payment.amount) : 0,
+          currency: formData.payment.currency || 'TL',
+          paymentMethod: formData.payment.paymentMethod || 'cash'
+        }
+      };
+
+      console.log('Sending job data:', cleanedData);
+      const response = await jobAPI.createJob(cleanedData);
       console.log('Job creation response:', response);
       
       if (response.data.success) {
         toast.success('İş ilanı başarıyla oluşturuldu!');
-        // Dashboard'a yönlendir ve sayfayı yenile
-        router.push('/dashboard');
-        // Sayfayı yenile
+        // Dashboard'a yönlendir
         setTimeout(() => {
-          window.location.reload();
+          router.push('/dashboard');
         }, 1000);
       }
     } catch (error) {
@@ -118,7 +164,7 @@ export default function CreateJobPage() {
     }
   };
 
-  if (!isAuthenticated || user?.userType !== 'employer') {
+  if (!initialized || !isAuthenticated || user?.userType !== 'employer') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

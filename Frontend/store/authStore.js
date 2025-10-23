@@ -10,13 +10,13 @@ export const useAuthStore = create((set, get) => ({
   initialized: false,
 
   initAuth: () => {
-    if (typeof window !== 'undefined' && !get().initialized) {
+    if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
       const user = localStorage.getItem('user');
       if (token && user) {
         set({ token, user: JSON.parse(user), isAuthenticated: true, initialized: true });
       } else {
-        set({ initialized: true });
+        set({ user: null, token: null, isAuthenticated: false, initialized: true });
       }
     }
   },

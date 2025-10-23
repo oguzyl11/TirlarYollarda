@@ -137,6 +137,34 @@ router.get('/job/:jobId', auth, async (req, res) => {
     }
 });
 
+// @route   GET /api/bids/employer-bids
+// @desc    Get all bids for employer's jobs
+// @access  Private
+router.get('/employer-bids', auth, async (req, res) => {
+    try {
+        // Get all jobs posted by this employer
+        const jobs = await Job.find({ postedBy: req.user.userId });
+        const jobIds = jobs.map(job => job._id);
+
+        // Get all bids for these jobs
+        const bids = await Bid.find({ job: { $in: jobIds } })
+            .populate('bidder', 'profile rating')
+            .populate('job', 'title route status')
+            .sort('-createdAt');
+
+        res.json({
+            success: true,
+            data: bids
+        });
+    } catch (error) {
+        console.error('Get employer bids error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Başvurular getirilirken hata oluştu'
+        });
+    }
+});
+
 // @route   GET /api/bids/my-bids
 // @desc    Get current user's bids
 // @access  Private

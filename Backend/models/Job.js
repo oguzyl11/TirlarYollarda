@@ -13,14 +13,14 @@ const jobSchema = new mongoose.Schema({
     },
     title: {
         type: String,
-        required: [true, 'Ýlan baþlýðý gereklidir'],
+        required: [true, 'ï¿½lan baï¿½lï¿½ï¿½ï¿½ gereklidir'],
         trim: true,
-        maxlength: [100, 'Baþlýk 100 karakterden uzun olamaz']
+        maxlength: [100, 'Baï¿½lï¿½k 100 karakterden uzun olamaz']
     },
     description: {
         type: String,
-        required: [true, 'Açýklama gereklidir'],
-        maxlength: [2000, 'Açýklama 2000 karakterden uzun olamaz']
+        required: [true, 'Aï¿½ï¿½klama gereklidir'],
+        maxlength: [2000, 'Aï¿½ï¿½klama 2000 karakterden uzun olamaz']
     },
     route: {
         from: {
@@ -50,7 +50,7 @@ const jobSchema = new mongoose.Schema({
     loadDetails: {
         type: {
             type: String,
-            enum: ['Parsiyel', 'Konteyner', 'Dorse', 'Frigo', 'Tanker', 'Diðer']
+            enum: ['Parsiyel', 'Konteyner', 'Dorse', 'Frigo', 'Tanker', 'DiÄŸer', 'Tam YÃ¼k', 'Kargo']
         },
         weight: String,
         dimensions: {
@@ -58,22 +58,29 @@ const jobSchema = new mongoose.Schema({
             width: Number,
             height: Number
         },
+        description: String,
         specialRequirements: [String]
     },
     vehicleRequirements: {
         type: {
             type: String,
-            enum: ['Týr', 'Kamyon', 'Çekici', 'Kamyonet', 'Frigo', 'Tanker']
+            enum: ['TÄ±r', 'Kamyon', 'Ã‡ekici', 'Kamyonet', 'Frigo', 'Tanker']
         },
+        capacity: String,
         minCapacity: Number,
+        specialRequirements: String,
         features: [String]
     },
     schedule: {
         startDate: {
             type: Date,
-            required: true
+            required: false
         },
         endDate: Date,
+        flexible: {
+            type: Boolean,
+            default: false
+        },
         flexibility: {
             type: String,
             enum: ['exact', 'flexible', 'negotiable'],
@@ -84,7 +91,7 @@ const jobSchema = new mongoose.Schema({
         amount: Number,
         currency: {
             type: String,
-            default: 'TRY'
+            default: 'TL'
         },
         paymentType: {
             type: String,
@@ -93,8 +100,8 @@ const jobSchema = new mongoose.Schema({
         },
         paymentMethod: {
             type: String,
-            enum: ['cash', 'bank-transfer', 'check', 'other'],
-            default: 'bank-transfer'
+            enum: ['cash', 'bank_transfer', 'check', 'other'],
+            default: 'cash'
         }
     },
     status: {

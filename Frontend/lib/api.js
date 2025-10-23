@@ -29,7 +29,10 @@ api.interceptors.response.use(
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        // Sadece login sayfasında değilsek yönlendir
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
@@ -55,6 +58,7 @@ export const bidAPI = {
   createBid: (data) => api.post('/bids', data),
   getMyBids: () => api.get('/bids/my-bids'),
   getJobBids: (jobId) => api.get(`/bids/job/${jobId}`),
+  getEmployerBids: () => api.get('/bids/employer-bids'),
   updateBidStatus: (id, status) => api.patch(`/bids/${id}/status`, { status }),
 };
 

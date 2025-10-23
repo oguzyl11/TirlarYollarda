@@ -35,46 +35,28 @@ router.post('/register', [
 
         const { email, password, userType, profile, driverDetails, employerDetails } = req.body;
 
-        // Check if user exists
-        let user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({
-                success: false,
-                message: 'Bu email adresi zaten kayýtlý'
-            });
-        }
-
-        // Create user
-        user = new User({
-            email,
-            password,
-            userType,
-            profile,
-            ...(userType === 'driver' && { driverDetails }),
-            ...(userType === 'employer' && { employerDetails })
-        });
-
-        await user.save();
+        // Mock register for development (MongoDB not connected)
+        const mockUser = {
+            id: 'mock-user-id',
+            email: email,
+            userType: userType,
+            profile: profile
+        };
 
         // Generate token
-        const token = generateToken(user._id);
+        const token = generateToken(mockUser.id);
 
         res.status(201).json({
             success: true,
-            message: 'Kayýt baþarýlý',
+            message: 'Kayit basarili',
             token,
-            user: {
-                id: user._id,
-                email: user.email,
-                userType: user.userType,
-                profile: user.profile
-            }
+            user: mockUser
         });
     } catch (error) {
         console.error('Register error:', error);
         res.status(500).json({
             success: false,
-            message: 'Kayýt sýrasýnda hata oluþtu'
+            message: 'Kayit sirasinda hata olustu'
         });
     }
 });
@@ -97,56 +79,33 @@ router.post('/login', [
 
         const { email, password } = req.body;
 
-        // Find user and include password field
-        const user = await User.findOne({ email }).select('+password');
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: 'Email veya þifre hatalý'
-            });
-        }
-
-        // Check if user is active
-        if (!user.active) {
-            return res.status(403).json({
-                success: false,
-                message: 'Hesabýnýz askýya alýnmýþ'
-            });
-        }
-
-        // Verify password
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-            return res.status(401).json({
-                success: false,
-                message: 'Email veya þifre hatalý'
-            });
-        }
-
-        // Update last login
-        user.lastLogin = new Date();
-        await user.save();
+        // Mock login for development (MongoDB not connected)
+        const mockUser = {
+            id: 'mock-user-id',
+            email: email,
+            userType: 'employer',
+            profile: {
+                firstName: 'Test',
+                lastName: 'User',
+                phone: '05551234567'
+            },
+            rating: 4.5
+        };
 
         // Generate token
-        const token = generateToken(user._id);
+        const token = generateToken(mockUser.id);
 
         res.json({
             success: true,
-            message: 'Giriþ baþarýlý',
+            message: 'Giris basarili',
             token,
-            user: {
-                id: user._id,
-                email: user.email,
-                userType: user.userType,
-                profile: user.profile,
-                rating: user.rating
-            }
+            user: mockUser
         });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({
             success: false,
-            message: 'Giriþ sýrasýnda hata oluþtu'
+            message: 'Giris sirasinda hata olustu'
         });
     }
 });
@@ -160,29 +119,34 @@ router.get('/me', async (req, res) => {
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: 'Token bulunamadý'
+                message: 'Token bulunamadi'
             });
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
-        const user = await User.findById(decoded.userId);
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'Kullanýcý bulunamadý'
-            });
-        }
+        
+        // Mock user for development
+        const mockUser = {
+            id: decoded.userId,
+            email: 'test@example.com',
+            userType: 'employer',
+            profile: {
+                firstName: 'Test',
+                lastName: 'User',
+                phone: '05551234567'
+            },
+            rating: 4.5
+        };
 
         res.json({
             success: true,
-            user
+            user: mockUser
         });
     } catch (error) {
         console.error('Get me error:', error);
         res.status(401).json({
             success: false,
-            message: 'Geçersiz token'
+            message: 'Gecersiz token'
         });
     }
 });

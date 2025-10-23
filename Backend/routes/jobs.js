@@ -245,9 +245,7 @@ router.post('/', auth, [
     body('title').trim().notEmpty().withMessage('Başlık gereklidir'),
     body('description').trim().notEmpty().withMessage('Açıklama gereklidir'),
     body('route.from.city').trim().notEmpty().withMessage('Başlangıç şehri gereklidir'),
-    body('route.to.city').trim().notEmpty().withMessage('Varış şehri gereklidir'),
-    body('loadDetails.type').trim().notEmpty().withMessage('Yük tipi gereklidir'),
-    body('payment.amount').isNumeric().withMessage('Geçerli bir ücret giriniz')
+    body('route.to.city').trim().notEmpty().withMessage('Varış şehri gereklidir')
 ], async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -261,28 +259,23 @@ router.post('/', auth, [
 
         const jobData = req.body;
         
-        // Create mock job
-        const mockJob = {
-            _id: `job_${Date.now()}`,
+        // Mock job creation for development (MongoDB not connected)
+        const job = {
+            _id: 'job_' + Date.now(),
             ...jobData,
             postedBy: req.user.userId,
             status: 'active',
             views: 0,
             createdAt: new Date().toISOString(),
-            bids: []
+            updatedAt: new Date().toISOString()
         };
 
-        // Add to mock data
-        mockAllJobs.unshift(mockJob);
-        mockUserJobs.push(mockJob);
-
-        console.log('New job created:', mockJob);
-        console.log('Total jobs in mock data:', mockAllJobs.length);
+        console.log('New job created:', job);
 
         res.status(201).json({
             success: true,
             message: 'İlan başarıyla oluşturuldu',
-            data: mockJob
+            data: job
         });
     } catch (error) {
         console.error('Create job error:', error);
@@ -300,14 +293,45 @@ router.get('/user/my-jobs', auth, async (req, res) => {
     try {
         console.log('Get my jobs request for user:', req.user.userId);
         
-        // Filter jobs by user
-        const userJobs = mockUserJobs.filter(job => job.postedBy === req.user.userId);
+        // Mock user jobs for development (MongoDB not connected)
+        const mockUserJobs = [
+            {
+                _id: 'user_job_1',
+                title: 'İstanbul-Ankara Test İşi',
+                description: 'Test amaçlı oluşturulan iş ilanı',
+                jobType: 'employer-seeking-driver',
+                route: { from: { city: 'İstanbul' }, to: { city: 'Ankara' } },
+                loadDetails: { type: 'Kargo', weight: '2' },
+                payment: { amount: 2500, currency: 'TL' },
+                schedule: { startDate: '2024-01-15T08:00:00Z' },
+                status: 'active',
+                views: 15,
+                createdAt: '2024-01-10T10:00:00Z',
+                postedBy: req.user.userId,
+                bids: []
+            },
+            {
+                _id: 'user_job_2',
+                title: 'Ankara-İzmir Parsiyel',
+                description: 'Parsiyel yük taşıma işi',
+                jobType: 'employer-seeking-driver',
+                route: { from: { city: 'Ankara' }, to: { city: 'İzmir' } },
+                loadDetails: { type: 'Parsiyel', weight: '5' },
+                payment: { amount: 1800, currency: 'TL' },
+                schedule: { startDate: '2024-01-18T09:00:00Z' },
+                status: 'active',
+                views: 8,
+                createdAt: '2024-01-12T14:30:00Z',
+                postedBy: req.user.userId,
+                bids: []
+            }
+        ];
         
-        console.log('User jobs found:', userJobs.length);
+        console.log('User jobs found:', mockUserJobs.length);
         
         res.json({
             success: true,
-            data: userJobs
+            data: mockUserJobs
         });
     } catch (error) {
         console.error('Get my jobs error:', error);
@@ -365,9 +389,18 @@ router.delete('/:id', auth, async (req, res) => {
     try {
         const jobId = req.params.id;
 
-        // Remove from mock data
-        mockAllJobs = mockAllJobs.filter(job => job._id !== jobId);
-        mockUserJobs = mockUserJobs.filter(job => job._id !== jobId);
+        // Find and delete job from database
+        const job = await Job.findOneAndDelete({ 
+            _id: jobId, 
+            postedBy: req.user.userId 
+        });
+
+        if (!job) {
+            return res.status(404).json({
+                success: false,
+                message: 'İlan bulunamadı veya silme yetkiniz yok'
+            });
+        }
 
         res.json({
             success: true,
