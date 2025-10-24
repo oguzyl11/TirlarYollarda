@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Footer from '../../components/Footer';
@@ -28,6 +28,18 @@ import Header from '../../components/Header';
 export default function SupportPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFaq, setExpandedFaq] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+
+  const categories = [
+    { id: '', name: 'Tüm Kategoriler' },
+    { id: 'Hesap', name: 'Hesap' },
+    { id: 'İş İlanları', name: 'İş İlanları' },
+    { id: 'Ödeme', name: 'Ödeme' },
+    { id: 'Teknik', name: 'Teknik' },
+    { id: 'Güvenlik', name: 'Güvenlik' },
+    { id: 'Genel', name: 'Genel' }
+  ];
 
   const faqs = [
     {
@@ -80,7 +92,7 @@ export default function SupportPage() {
     }
   ];
 
-  const categories = [
+  const categoryCards = [
     { name: "Hesap", icon: Users, color: "blue" },
     { name: "İş İlanları", icon: Truck, color: "green" },
     { name: "Teklifler", icon: MessageCircle, color: "purple" },
@@ -89,10 +101,15 @@ export default function SupportPage() {
     { name: "Değerlendirme", icon: CheckCircle, color: "indigo" }
   ];
 
-  const filteredFaqs = faqs.filter(faq => 
-    faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredFaqs = faqs.filter(faq => {
+    const matchesSearch = searchQuery === '' || 
+      faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = selectedCategory === '' || faq.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   const toggleFaq = (id) => {
     setExpandedFaq(expandedFaq === id ? null : id);
@@ -108,6 +125,30 @@ export default function SupportPage() {
       }
     }, 100);
   };
+
+  const handleCategorySelect = (categoryId) => {
+    setSelectedCategory(categoryId);
+    setShowCategoryDropdown(false);
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('');
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.relative')) {
+        setShowCategoryDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -134,15 +175,55 @@ export default function SupportPage() {
             </p>
             
             {/* Search Box */}
-            <div className="max-w-2xl mx-auto">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Sorunuzu arayın..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-6 py-4 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 focus:border-blue-500 bg-white shadow-lg"
-                />
+            <div className="max-w-4xl mx-auto">
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Category Dropdown */}
+                <div className="relative flex-1">
+                  <button
+                    onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                    className="w-full px-6 py-4 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 focus:border-blue-500 bg-white shadow-lg flex items-center justify-between"
+                  >
+                    <span className="text-left">
+                      {selectedCategory ? categories.find(cat => cat.id === selectedCategory)?.name : 'Kategori Seçin'}
+                    </span>
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  </button>
+                  
+                  {showCategoryDropdown && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {categories.map((category) => (
+                        <div
+                          key={category.id}
+                          className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-sm text-gray-900"
+                          onClick={() => handleCategorySelect(category.id)}
+                        >
+                          {category.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Search Input */}
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder="Sorunuzu arayın..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full px-6 py-4 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 focus:border-blue-500 bg-white shadow-lg"
+                  />
+                </div>
+
+                {/* Clear Filters Button */}
+                {(searchQuery || selectedCategory) && (
+                  <button
+                    onClick={clearFilters}
+                    className="px-6 py-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors whitespace-nowrap"
+                  >
+                    Temizle
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -245,7 +326,7 @@ export default function SupportPage() {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => {
+            {categoryCards.map((category) => {
               const Icon = category.icon;
               const categoryFaqs = faqs.filter(faq => faq.category === category.name);
               
@@ -292,7 +373,7 @@ export default function SupportPage() {
                     {categoryFaqs.length > 3 && (
                       <button
                         onClick={() => {
-                          setSearchQuery(category.name);
+                          setSelectedCategory(category.name);
                         }}
                         className="block text-left text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
                       >
