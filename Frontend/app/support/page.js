@@ -136,6 +136,16 @@ export default function SupportPage() {
     setSelectedCategory('');
   };
 
+  const scrollToFaq = () => {
+    const faqSection = document.getElementById('faq-section');
+    if (faqSection) {
+      faqSection.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -281,7 +291,7 @@ export default function SupportPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16 bg-gray-50">
+      <section id="faq-section" className="py-16 bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Sık Sorulan Sorular</h2>
@@ -492,7 +502,10 @@ export default function SupportPage() {
               <p className="text-gray-600 text-sm mb-4">
                 En sık sorulan sorular
               </p>
-              <button className="text-purple-600 font-semibold hover:text-purple-700 transition-colors">
+              <button 
+                onClick={scrollToFaq}
+                className="text-purple-600 font-semibold hover:text-purple-700 transition-colors"
+              >
                 Görüntüle →
               </button>
             </div>

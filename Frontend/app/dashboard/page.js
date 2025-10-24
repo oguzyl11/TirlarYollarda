@@ -85,6 +85,14 @@ export default function DashboardPage() {
         // Başvuru yapabileceği işler (son 10 iş)
         const jobsResponse = await jobAPI.getJobs({ limit: 10 });
         setAvailableJobs(jobsResponse.data.data || []);
+      } else if (user?.userType === 'individual') {
+        // Bireysel kullanıcı için: Gönderdiği işler
+        const jobsResponse = await jobAPI.getMyJobs();
+        setMyJobs(jobsResponse.data.data || []);
+        
+        // Başvuru yapabileceği işler (son 10 iş)
+        const availableJobsResponse = await jobAPI.getJobs({ limit: 10 });
+        setAvailableJobs(availableJobsResponse.data.data || []);
       }
       
     } catch (error) {
@@ -147,6 +155,7 @@ export default function DashboardPage() {
 
   const isDriver = user.userType === 'driver';
   const isEmployer = user.userType === 'employer';
+  const isIndividual = user.userType === 'individual';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -201,7 +210,7 @@ export default function DashboardPage() {
                     {user.profile?.firstName} {user.profile?.lastName}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">
-                    {isDriver ? 'Şoför' : 'İşveren'}
+                    {isDriver ? 'Şoför' : isEmployer ? 'İşveren' : 'Bireysel Kullanıcı'}
                   </p>
                 </div>
                 <button
@@ -227,7 +236,9 @@ export default function DashboardPage() {
           <p className="text-gray-600">
             {isDriver 
               ? 'Başvurduğun işler ve yeni fırsatları buradan takip edebilirsin.'
-              : 'İş ilanlarını ve başvuruları buradan yönetebilirsin.'
+              : isEmployer
+              ? 'İş ilanlarını ve başvuruları buradan yönetebilirsin.'
+              : 'Eşya taşıma işlerini buradan yönetebilir ve yeni fırsatları keşfedebilirsin.'
             }
           </p>
         </div>
@@ -586,7 +597,7 @@ export default function DashboardPage() {
                       <span className="text-gray-700">Profil</span>
                     </Link>
                   </>
-                ) : (
+                ) : isEmployer ? (
                   <>
                     <Link
                       href="/jobs/create"
@@ -601,6 +612,37 @@ export default function DashboardPage() {
                     >
                       <Briefcase className="w-5 h-5 text-blue-600 mr-3" />
                       <span className="text-gray-700">İşlerim</span>
+                    </Link>
+                    <Link
+                      href="/profile"
+                      className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <User className="w-5 h-5 text-blue-600 mr-3" />
+                      <span className="text-gray-700">Profil</span>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/jobs/create"
+                      className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <Plus className="w-5 h-5 text-blue-600 mr-3" />
+                      <span className="text-gray-700">Eşya Taşıma İsteği</span>
+                    </Link>
+                    <Link
+                      href="/jobs/my"
+                      className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <Briefcase className="w-5 h-5 text-blue-600 mr-3" />
+                      <span className="text-gray-700">İsteklerim</span>
+                    </Link>
+                    <Link
+                      href="/jobs"
+                      className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <Search className="w-5 h-5 text-blue-600 mr-3" />
+                      <span className="text-gray-700">Şoför Ara</span>
                     </Link>
                     <Link
                       href="/profile"
@@ -637,7 +679,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   </>
-                ) : (
+                ) : isEmployer ? (
                   <>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">Aktif İşler</span>
@@ -651,6 +693,25 @@ export default function DashboardPage() {
                       <span className="text-gray-600">Toplam Görüntüleme</span>
                       <span className="font-semibold text-gray-900">
                         {myJobs.reduce((sum, job) => sum + (job.views || 0), 0)}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Aktif İstekler</span>
+                      <span className="font-semibold text-gray-900">{myJobs.length}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Tamamlanan</span>
+                      <span className="font-semibold text-green-600">
+                        {myJobs.filter(job => job.status === 'completed').length}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Bekleyen</span>
+                      <span className="font-semibold text-yellow-600">
+                        {myJobs.filter(job => job.status === 'pending').length}
                       </span>
                     </div>
                   </>

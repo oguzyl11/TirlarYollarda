@@ -19,6 +19,8 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState(1);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [showIndividualCityDropdown, setShowIndividualCityDropdown] = useState(false);
+  const [showDistrictDropdown, setShowDistrictDropdown] = useState(false);
 
   // Türkiye'nin büyük şehirleri
   const cities = [
@@ -33,6 +35,17 @@ function RegisterForm() {
     'Van', 'Yozgat', 'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman',
     'Şırnak', 'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce'
   ];
+
+  // İlçe verileri
+  const districts = {
+    'İstanbul': ['Adalar', 'Arnavutköy', 'Ataşehir', 'Avcılar', 'Bağcılar', 'Bahçelievler', 'Bakırköy', 'Başakşehir', 'Bayrampaşa', 'Beşiktaş', 'Beykoz', 'Beylikdüzü', 'Beyoğlu', 'Büyükçekmece', 'Çatalca', 'Çekmeköy', 'Esenler', 'Esenyurt', 'Eyüpsultan', 'Fatih', 'Gaziosmanpaşa', 'Güngören', 'Kadıköy', 'Kağıthane', 'Kartal', 'Küçükçekmece', 'Maltepe', 'Pendik', 'Sancaktepe', 'Sarıyer', 'Silivri', 'Sultanbeyli', 'Sultangazi', 'Şile', 'Şişli', 'Tuzla', 'Ümraniye', 'Üsküdar', 'Zeytinburnu'],
+    'Ankara': ['Akyurt', 'Altındağ', 'Ayaş', 'Bala', 'Beypazarı', 'Çamlıdere', 'Çankaya', 'Çubuk', 'Elmadağ', 'Etimesgut', 'Evren', 'Gölbaşı', 'Güdül', 'Haymana', 'Kalecik', 'Kazan', 'Keçiören', 'Kızılcahamam', 'Mamak', 'Nallıhan', 'Polatlı', 'Pursaklar', 'Sincan', 'Şereflikoçhisar', 'Yenimahalle'],
+    'İzmir': ['Aliağa', 'Balçova', 'Bayındır', 'Bayraklı', 'Bergama', 'Beydağ', 'Bornova', 'Buca', 'Çeşme', 'Çiğli', 'Dikili', 'Foça', 'Gaziemir', 'Güzelbahçe', 'Karabağlar', 'Karaburun', 'Karşıyaka', 'Kemalpaşa', 'Kınık', 'Kiraz', 'Konak', 'Menderes', 'Menemen', 'Narlıdere', 'Ödemiş', 'Seferihisar', 'Selçuk', 'Tire', 'Torbalı', 'Urla'],
+    'Bursa': ['Büyükorhan', 'Gemlik', 'Gürsu', 'Harmancık', 'İnegöl', 'İznik', 'Karacabey', 'Keles', 'Kestel', 'Mudanya', 'Mustafakemalpaşa', 'Nilüfer', 'Orhaneli', 'Orhangazi', 'Osmangazi', 'Yenişehir', 'Yıldırım'],
+    'Antalya': ['Akseki', 'Aksu', 'Alanya', 'Demre', 'Döşemealtı', 'Elmalı', 'Finike', 'Gazipaşa', 'Gündoğmuş', 'İbradı', 'Kaş', 'Kemer', 'Kepez', 'Konyaaltı', 'Korkuteli', 'Kumluca', 'Manavgat', 'Muratpaşa', 'Serik'],
+    'Adana': ['Aladağ', 'Ceyhan', 'Çukurova', 'Feke', 'İmamoğlu', 'Karaisalı', 'Karataş', 'Kozan', 'Pozantı', 'Saimbeyli', 'Sarıçam', 'Seyhan', 'Tufanbeyli', 'Yumurtalık', 'Yüreğir'],
+    'Konya': ['Ahırlı', 'Akören', 'Akşehir', 'Altınekin', 'Beyşehir', 'Bozkır', 'Cihanbeyli', 'Çeltik', 'Çumra', 'Derbent', 'Derebucak', 'Doğanhisar', 'Emirgazi', 'Ereğli', 'Güneysinir', 'Hadim', 'Halkapınar', 'Hüyük', 'Ilgın', 'Kadınhanı', 'Karapınar', 'Karatay', 'Kulu', 'Meram', 'Sarayönü', 'Selçuklu', 'Seydişehir', 'Taşkent', 'Tuzlukçu', 'Yalıhüyük', 'Yunak']
+  };
 
   const [formData, setFormData] = useState({
     email: '',
@@ -55,6 +68,23 @@ function RegisterForm() {
       companyName: '',
       taxNumber: '',
       companyAddress: ''
+    },
+    individualDetails: {
+      preferredContactMethod: 'phone',
+      address: {
+        street: '',
+        district: '',
+        city: '',
+        postalCode: ''
+      },
+      preferences: {
+        preferredDriverType: 'any',
+        budgetRange: {
+          min: '',
+          max: ''
+        },
+        specialRequirements: ''
+      }
     }
   });
   const [errors, setErrors] = useState({});
@@ -67,11 +97,13 @@ function RegisterForm() {
     }
   }, [searchParams]);
 
-  // Dropdown'ı dışına tıklandığında kapat
+  // Dropdown'ları dışına tıklandığında kapat
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest('.relative')) {
         setShowCityDropdown(false);
+        setShowIndividualCityDropdown(false);
+        setShowDistrictDropdown(false);
       }
     };
 
@@ -119,8 +151,11 @@ function RegisterForm() {
     if (userType === 'driver') {
       if (!formData.driverDetails.licenseType) newErrors.licenseType = 'Ehliyet tipi gereklidir';
       if (!formData.driverDetails.vehicleType) newErrors.vehicleType = 'Araç tipi gereklidir';
-    } else {
+    } else if (userType === 'employer') {
       if (!formData.employerDetails.companyName) newErrors.companyName = 'Şirket adı gereklidir';
+    } else if (userType === 'individual') {
+      if (!formData.individualDetails.address.city) newErrors.individualCity = 'Şehir seçimi gereklidir';
+      if (!formData.individualDetails.address.district) newErrors.individualDistrict = 'İlçe seçimi gereklidir';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -143,6 +178,35 @@ function RegisterForm() {
       }
     }));
     setShowCityDropdown(false);
+  };
+
+  const handleIndividualCitySelect = (city) => {
+    setFormData(prev => ({
+      ...prev,
+      individualDetails: {
+        ...prev.individualDetails,
+        address: {
+          ...prev.individualDetails.address,
+          city: city,
+          district: '' // Şehir değiştiğinde ilçeyi sıfırla
+        }
+      }
+    }));
+    setShowIndividualCityDropdown(false);
+  };
+
+  const handleDistrictSelect = (district) => {
+    setFormData(prev => ({
+      ...prev,
+      individualDetails: {
+        ...prev.individualDetails,
+        address: {
+          ...prev.individualDetails.address,
+          district: district
+        }
+      }
+    }));
+    setShowDistrictDropdown(false);
   };
 
   const filteredCities = (searchTerm) => {
@@ -170,14 +234,29 @@ function RegisterForm() {
     const { name, value } = e.target;
     
     if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value
-        }
-      }));
+      const keys = name.split('.');
+      if (keys.length === 2) {
+        const [parent, child] = keys;
+        setFormData(prev => ({
+          ...prev,
+          [parent]: {
+            ...prev[parent],
+            [child]: value
+          }
+        }));
+      } else if (keys.length === 3) {
+        const [parent, child, grandchild] = keys;
+        setFormData(prev => ({
+          ...prev,
+          [parent]: {
+            ...prev[parent],
+            [child]: {
+              ...prev[parent][child],
+              [grandchild]: value
+            }
+          }
+        }));
+      }
     } else {
       setFormData(prev => ({
         ...prev,
@@ -187,6 +266,14 @@ function RegisterForm() {
 
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
+    }
+    
+    // Bireysel kullanıcı hatalarını temizle
+    if (name === 'individualDetails.address.city' && errors.individualCity) {
+      setErrors(prev => ({ ...prev, individualCity: null }));
+    }
+    if (name === 'individualDetails.address.district' && errors.individualDistrict) {
+      setErrors(prev => ({ ...prev, individualDistrict: null }));
     }
   };
 
@@ -218,7 +305,7 @@ function RegisterForm() {
 
         {/* User Type Toggle */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
               type="button"
               onClick={() => {
@@ -257,6 +344,26 @@ function RegisterForm() {
                   İşveren
                 </div>
                 <div className="text-xs text-gray-500 mt-1">Şoför arıyorum</div>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setUserType('individual');
+                setFormData(prev => ({ ...prev, userType: 'individual' }));
+              }}
+              className={`p-6 rounded-xl border-2 transition-all duration-200 ${
+                userType === 'individual'
+                  ? 'border-blue-600 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <User className={`w-8 h-8 mx-auto mb-3 ${userType === 'individual' ? 'text-blue-600' : 'text-gray-400'}`} />
+              <div className="text-center">
+                <div className={`font-semibold ${userType === 'individual' ? 'text-blue-600' : 'text-gray-900'}`}>
+                  Bireysel Kullanıcı
+                </div>
+                <div className="text-xs text-gray-500 mt-1">Eşya taşıttırıyorum</div>
               </div>
             </button>
           </div>
@@ -530,7 +637,7 @@ function RegisterForm() {
                       />
                     </div>
                   </>
-                ) : (
+                ) : userType === 'employer' ? (
                   <>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Şirket Adı</label>
@@ -571,7 +678,180 @@ function RegisterForm() {
                       />
                     </div>
                   </>
-                )}
+                ) : userType === 'employer' ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Şirket Adı</label>
+                      <input
+                        type="text"
+                        name="employerDetails.companyName"
+                        value={formData.employerDetails.companyName}
+                        onChange={handleChange}
+                        className={`input-field ${errors.companyName ? 'border-red-500' : ''}`}
+                        placeholder="Şirket adınız"
+                      />
+                      {errors.companyName && (
+                        <div className="text-red-600 text-sm mt-1">{errors.companyName}</div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Vergi Numarası (Opsiyonel)</label>
+                      <input
+                        type="text"
+                        name="employerDetails.taxNumber"
+                        value={formData.employerDetails.taxNumber}
+                        onChange={handleChange}
+                        className="input-field"
+                        placeholder="XXXXXXXXXX"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Şirket Adresi (Opsiyonel)</label>
+                      <textarea
+                        name="employerDetails.companyAddress"
+                        value={formData.employerDetails.companyAddress}
+                        onChange={handleChange}
+                        className="input-field"
+                        rows="3"
+                        placeholder="Adres"
+                      />
+                    </div>
+                  </>
+                ) : userType === 'individual' ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tercih Edilen İletişim Yöntemi</label>
+                      <select
+                        name="individualDetails.preferredContactMethod"
+                        value={formData.individualDetails.preferredContactMethod}
+                        onChange={handleChange}
+                        className="input-field"
+                      >
+                        <option value="phone">Telefon</option>
+                        <option value="email">E-posta</option>
+                        <option value="whatsapp">WhatsApp</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Adres Bilgileri</label>
+                      <div className="space-y-4">
+                        <input
+                          type="text"
+                          name="individualDetails.address.street"
+                          value={formData.individualDetails.address.street}
+                          onChange={handleChange}
+                          className="input-field"
+                          placeholder="Sokak/Mahalle"
+                        />
+                        
+                        {/* Şehir Dropdown */}
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setShowIndividualCityDropdown(!showIndividualCityDropdown)}
+                            className={`w-full input-field text-left flex items-center justify-between ${
+                              errors.individualCity ? 'border-red-500' : ''
+                            }`}
+                          >
+                            <span className={formData.individualDetails.address.city ? 'text-gray-900' : 'text-gray-500'}>
+                              {formData.individualDetails.address.city || 'Şehir Seçin'}
+                            </span>
+                            <ChevronDown className="w-5 h-5 text-gray-400" />
+                          </button>
+                          
+                          {showIndividualCityDropdown && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                              {cities.map((city) => (
+                                <div
+                                  key={city}
+                                  className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-sm text-gray-900"
+                                  onClick={() => handleIndividualCitySelect(city)}
+                                >
+                                  {city}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {errors.individualCity && (
+                            <div className="text-red-600 text-sm mt-1">{errors.individualCity}</div>
+                          )}
+                        </div>
+
+                        {/* İlçe Dropdown */}
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setShowDistrictDropdown(!showDistrictDropdown)}
+                            disabled={!formData.individualDetails.address.city}
+                            className={`w-full input-field text-left flex items-center justify-between ${
+                              !formData.individualDetails.address.city ? 'opacity-50 cursor-not-allowed' : ''
+                            } ${errors.individualDistrict ? 'border-red-500' : ''}`}
+                          >
+                            <span className={formData.individualDetails.address.district ? 'text-gray-900' : 'text-gray-500'}>
+                              {formData.individualDetails.address.district || 'İlçe Seçin'}
+                            </span>
+                            <ChevronDown className="w-5 h-5 text-gray-400" />
+                          </button>
+                          
+                          {showDistrictDropdown && formData.individualDetails.address.city && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                              {districts[formData.individualDetails.address.city]?.map((district) => (
+                                <div
+                                  key={district}
+                                  className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-sm text-gray-900"
+                                  onClick={() => handleDistrictSelect(district)}
+                                >
+                                  {district}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {errors.individualDistrict && (
+                            <div className="text-red-600 text-sm mt-1">{errors.individualDistrict}</div>
+                          )}
+                        </div>
+
+                        <input
+                          type="text"
+                          name="individualDetails.address.postalCode"
+                          value={formData.individualDetails.address.postalCode}
+                          onChange={handleChange}
+                          className="input-field"
+                          placeholder="Posta Kodu (Opsiyonel)"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Tercih Edilen Şoför Tipi</label>
+                      <select
+                        name="individualDetails.preferences.preferredDriverType"
+                        value={formData.individualDetails.preferences.preferredDriverType}
+                        onChange={handleChange}
+                        className="input-field"
+                      >
+                        <option value="any">Fark Etmez</option>
+                        <option value="experienced">Deneyimli</option>
+                        <option value="local">Yerel</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Özel Gereksinimler (Opsiyonel)</label>
+                      <textarea
+                        name="individualDetails.preferences.specialRequirements"
+                        value={formData.individualDetails.preferences.specialRequirements}
+                        onChange={handleChange}
+                        className="input-field"
+                        rows="3"
+                        placeholder="Özel gereksinimlerinizi yazın..."
+                      />
+                    </div>
+                  </>
+                ) : null}
 
                 <div className="flex space-x-3 pt-6">
                   <button type="button" onClick={() => setStep(2)} className="flex-1 btn-secondary py-3">

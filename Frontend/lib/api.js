@@ -47,6 +47,14 @@ export const authAPI = {
   resetPassword: (token, password) => api.post('/auth/reset-password', { token, password }),
 };
 
+export const notificationAPI = {
+  getNotifications: () => api.get('/notifications'),
+  markAsRead: (id) => api.put(`/notifications/${id}/read`),
+  markAllAsRead: () => api.put('/notifications/read-all'),
+  deleteNotification: (id) => api.delete(`/notifications/${id}`),
+  createNotification: (data) => api.post('/notifications', data),
+};
+
 export const jobAPI = {
   getJobs: (params) => api.get('/jobs', { params }),
   getJob: (id) => api.get(`/jobs/${id}`),

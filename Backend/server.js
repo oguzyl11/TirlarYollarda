@@ -55,6 +55,7 @@ app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/bids', require('./routes/bids'));
 app.use('/api/messages', require('./routes/messages'));
 app.use('/api/reviews', require('./routes/reviews'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 // Health check
 app.get('/health', (req, res) => {

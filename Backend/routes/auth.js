@@ -15,22 +15,55 @@ const generateToken = (userId) => {
     );
 };
 
-// Email transporter (mock for development)
+// Email transporter with multiple options
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: process.env.EMAIL_PORT || 587,
+    secure: false, // true for 465, false for other ports
     auth: {
         user: process.env.EMAIL_USER || 'test@example.com',
         pass: process.env.EMAIL_PASS || 'test-password'
     }
 });
 
-// Mock email sending for development
+// Enhanced email sending function with better logging
 const sendEmail = async (to, subject, html) => {
-    console.log('Mock Email Sent:');
-    console.log('To:', to);
-    console.log('Subject:', subject);
-    console.log('HTML:', html);
-    return true;
+    try {
+        // Check if email credentials are configured
+        const emailUser = process.env.EMAIL_USER || 'test@example.com';
+        const emailPass = process.env.EMAIL_PASS || 'test-password';
+        
+        if (emailUser === 'test@example.com' || emailPass === 'test-password') {
+            console.log('⚠️  Email credentials not configured. Using mock mode.');
+            console.log('📧 Mock Email Sent:');
+            console.log('   To:', to);
+            console.log('   Subject:', subject);
+            console.log('   Reset Link:', html.match(/href="([^"]+)"/)?.[1] || 'Link not found');
+            console.log('   To configure real email, set EMAIL_USER and EMAIL_PASS in .env file');
+            return true;
+        }
+        
+        const info = await transporter.sendMail({
+            from: emailUser,
+            to: to,
+            subject: subject,
+            html: html
+        });
+        
+        console.log('✅ Email sent successfully:', info.messageId);
+        console.log('📧 Email Details:');
+        console.log('   To:', to);
+        console.log('   Subject:', subject);
+        console.log('   Message ID:', info.messageId);
+        return true;
+    } catch (error) {
+        console.error('❌ Email sending failed:', error.message);
+        console.log('📧 Fallback - Mock Email Sent:');
+        console.log('   To:', to);
+        console.log('   Subject:', subject);
+        console.log('   Reset Link:', html.match(/href="([^"]+)"/)?.[1] || 'Link not found');
+        return true;
+    }
 };
 
 // @route   POST /api/auth/register
@@ -39,7 +72,7 @@ const sendEmail = async (to, subject, html) => {
 router.post('/register', [
     body('email').isEmail().normalizeEmail(),
     body('password').isLength({ min: 6 }),
-    body('userType').isIn(['driver', 'employer']),
+    body('userType').isIn(['driver', 'employer', 'individual']),
     body('profile.firstName').trim().notEmpty(),
     body('profile.lastName').trim().notEmpty(),
     body('profile.phone').matches(/^[0-9]{10,11}$/)
@@ -53,7 +86,7 @@ router.post('/register', [
             });
         }
 
-        const { email, password, userType, profile, driverDetails, employerDetails } = req.body;
+        const { email, password, userType, profile, driverDetails, employerDetails, individualDetails } = req.body;
 
         // Check if user already exists
         const existingUser = await User.findOne({ email });
@@ -71,7 +104,8 @@ router.post('/register', [
             userType,
             profile,
             ...(userType === 'driver' && driverDetails && { driverDetails }),
-            ...(userType === 'employer' && employerDetails && { employerDetails })
+            ...(userType === 'employer' && employerDetails && { employerDetails }),
+            ...(userType === 'individual' && individualDetails && { individualDetails })
         };
 
         const user = new User(userData);
@@ -91,6 +125,7 @@ router.post('/register', [
                 profile: user.profile,
                 driverDetails: user.driverDetails,
                 employerDetails: user.employerDetails,
+                individualDetails: user.individualDetails,
                 rating: user.rating
             }
         });
@@ -165,6 +200,7 @@ router.post('/login', [
                 profile: user.profile,
                 driverDetails: user.driverDetails,
                 employerDetails: user.employerDetails,
+                individualDetails: user.individualDetails,
                 rating: user.rating
             }
         });
@@ -210,6 +246,7 @@ router.get('/me', async (req, res) => {
                 profile: user.profile,
                 driverDetails: user.driverDetails,
                 employerDetails: user.employerDetails,
+                individualDetails: user.individualDetails,
                 rating: user.rating,
                 verified: user.verified,
                 createdAt: user.createdAt

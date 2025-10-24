@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
     },
     userType: {
         type: String,
-        enum: ['driver', 'employer'],
+        enum: ['driver', 'employer', 'individual'],
         required: [true, 'Kullan�c� tipi gereklidir']
     },
     profile: {
@@ -69,6 +69,45 @@ const userSchema = new mongoose.Schema({
         postedJobs: {
             type: Number,
             default: 0
+        }
+    },
+    individualDetails: {
+        preferredContactMethod: {
+            type: String,
+            enum: ['phone', 'email', 'whatsapp'],
+            default: 'phone'
+        },
+        address: {
+            street: String,
+            district: String,
+            city: String,
+            postalCode: String
+        },
+        preferences: {
+            preferredDriverType: {
+                type: String,
+                enum: ['any', 'experienced', 'local'],
+                default: 'any'
+            },
+            budgetRange: {
+                min: Number,
+                max: Number
+            },
+            specialRequirements: String
+        },
+        shipmentHistory: {
+            totalShipments: {
+                type: Number,
+                default: 0
+            },
+            completedShipments: {
+                type: Number,
+                default: 0
+            },
+            cancelledShipments: {
+                type: Number,
+                default: 0
+            }
         }
     },
     rating: {
