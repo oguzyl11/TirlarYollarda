@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mail, Lock, Eye, EyeOff, Truck, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import toast, { Toaster } from 'react-hot-toast';
@@ -73,8 +74,15 @@ export default function LoginPage() {
         {/* Logo & Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
-              <Truck className="w-7 h-7 text-white" />
+            <div className="w-12 h-12 relative">
+              <Image
+                src="/logo.png"
+                alt="TırlarYollarda Logo"
+                width={48}
+                height={48}
+                className="rounded-xl"
+                priority
+              />
             </div>
             <span className="text-2xl font-bold text-gray-900">TırlarYollarda</span>
           </Link>
