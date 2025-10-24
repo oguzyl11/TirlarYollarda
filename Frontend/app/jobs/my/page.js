@@ -101,13 +101,13 @@ export default function MyJobsPage() {
                 Dashboard'a Dön
               </Link>
               <div className="h-6 w-px bg-gray-300"></div>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 relative">
+              <div className="flex items-center space-x-3">
+                <div className="w-16 h-16 relative">
                   <Image
                     src="/logo.png"
-                    alt="TırlarYollarda Logo"
-                    width={32}
-                    height={32}
+                    alt="LoadING Logo"
+                    width={64}
+                    height={64}
                     className="rounded-lg"
                     priority
                   />

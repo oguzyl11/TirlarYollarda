@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   HelpCircle, 
   MessageCircle, 
@@ -402,8 +403,17 @@ export default function SupportPage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <Truck className="w-6 h-6 text-blue-400" />
-                <span className="font-bold text-lg">TırlarYollarda</span>
+                <div className="w-8 h-8 relative">
+                  <Image
+                    src="/logo.png"
+                    alt="LoadING Logo"
+                    width={32}
+                    height={32}
+                    className="rounded-lg"
+                    priority
+                  />
+                </div>
+                <span className="font-bold text-lg">LoadING</span>
               </div>
               <p className="text-gray-400 text-sm">
                 Nakliyat sektörünün dijital buluşma noktası

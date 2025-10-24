@@ -13,7 +13,8 @@ import {
   Package,
   Clock,
   Save,
-  X
+  X,
+  ChevronDown
 } from 'lucide-react';
 import { useAuthStore } from '../../../store/authStore';
 import { jobAPI } from '../../../lib/api';
@@ -23,6 +24,23 @@ export default function CreateJobPage() {
   const router = useRouter();
   const { user, isAuthenticated, initAuth, initialized } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const [showFromDropdown, setShowFromDropdown] = useState(false);
+  const [showToDropdown, setShowToDropdown] = useState(false);
+
+  // Türkiye'nin büyük şehirleri
+  const cities = [
+    'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Amasya', 'Ankara', 'Antalya', 'Artvin',
+    'Aydın', 'Balıkesir', 'Bilecik', 'Bingöl', 'Bitlis', 'Bolu', 'Burdur', 'Bursa',
+    'Çanakkale', 'Çankırı', 'Çorum', 'Denizli', 'Diyarbakır', 'Edirne', 'Elazığ', 'Erzincan',
+    'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane', 'Hakkari', 'Hatay', 'Isparta',
+    'Mersin', 'İstanbul', 'İzmir', 'Kars', 'Kastamonu', 'Kayseri', 'Kırklareli', 'Kırşehir',
+    'Kocaeli', 'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Kahramanmaraş', 'Mardin', 'Muğla',
+    'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Rize', 'Sakarya', 'Samsun', 'Siirt',
+    'Sinop', 'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Şanlıurfa', 'Uşak',
+    'Van', 'Yozgat', 'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman',
+    'Şırnak', 'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce'
+  ];
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -71,6 +89,21 @@ export default function CreateJobPage() {
     }
   }, [isAuthenticated, user, initialized, router]);
 
+  // Dropdown'ları dışına tıklandığında kapat
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.relative')) {
+        setShowFromDropdown(false);
+        setShowToDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleInputChange = (field, value) => {
     if (field.includes('.')) {
       const parts = field.split('.');
@@ -94,6 +127,21 @@ export default function CreateJobPage() {
         [field]: value
       }));
     }
+  };
+
+  const handleCitySelect = (city, type) => {
+    handleInputChange(`route.${type}.city`, city);
+    if (type === 'from') {
+      setShowFromDropdown(false);
+    } else {
+      setShowToDropdown(false);
+    }
+  };
+
+  const filteredCities = (searchTerm) => {
+    return cities.filter(city => 
+      city.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -190,13 +238,13 @@ export default function CreateJobPage() {
                 Geri Dön
               </Link>
               <div className="h-6 w-px bg-gray-300"></div>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 relative">
+              <div className="flex items-center space-x-3">
+                <div className="w-16 h-16 relative">
                   <Image
                     src="/logo.png"
-                    alt="TırlarYollarda Logo"
-                    width={32}
-                    height={32}
+                    alt="LoadING Logo"
+                    width={64}
+                    height={64}
                     className="rounded-lg"
                     priority
                   />
@@ -271,28 +319,70 @@ export default function CreateJobPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Kalkış Şehri *
                 </label>
-                <input
-                  type="text"
-                  value={formData.route.from.city}
-                  onChange={(e) => handleInputChange('route.from.city', e.target.value)}
-                  className="input-field"
-                  placeholder="İstanbul"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={formData.route.from.city}
+                    onChange={(e) => {
+                      handleInputChange('route.from.city', e.target.value);
+                      setShowFromDropdown(true);
+                    }}
+                    onFocus={() => setShowFromDropdown(true)}
+                    className="input-field pr-10 !text-black"
+                    placeholder="Şehir seçin..."
+                    required
+                  />
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  
+                  {showFromDropdown && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {filteredCities(formData.route.from.city).map((city) => (
+                        <div
+                          key={city}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-black"
+                          onClick={() => handleCitySelect(city, 'from')}
+                        >
+                          {city}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Varış Şehri *
                 </label>
-                <input
-                  type="text"
-                  value={formData.route.to.city}
-                  onChange={(e) => handleInputChange('route.to.city', e.target.value)}
-                  className="input-field"
-                  placeholder="Ankara"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={formData.route.to.city}
+                    onChange={(e) => {
+                      handleInputChange('route.to.city', e.target.value);
+                      setShowToDropdown(true);
+                    }}
+                    onFocus={() => setShowToDropdown(true)}
+                    className="input-field pr-10 !text-black"
+                    placeholder="Şehir seçin..."
+                    required
+                  />
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  
+                  {showToDropdown && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {filteredCities(formData.route.to.city).map((city) => (
+                        <div
+                          key={city}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-black"
+                          onClick={() => handleCitySelect(city, 'to')}
+                        >
+                          {city}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

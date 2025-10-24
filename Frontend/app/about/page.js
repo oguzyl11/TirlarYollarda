@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   Truck, 
   Users, 
@@ -33,10 +34,17 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center mb-6">
-              <div className="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mr-4">
-                <Truck className="w-10 h-10 text-white" />
+              <div className="w-24 h-24 relative mr-4">
+                <Image
+                  src="/logo.png"
+                  alt="LoadING Logo"
+                  width={96}
+                  height={96}
+                  className="rounded-2xl"
+                  priority
+                />
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold">TırlarYollarda</h1>
+              <h1 className="text-4xl md:text-5xl font-bold">LoadING</h1>
             </div>
             <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto mb-8">
               Nakliyat sektörünün dijital buluşma noktası. Şirketler ve şoförler için güvenilir, hızlı ve verimli işbirliği platformu.

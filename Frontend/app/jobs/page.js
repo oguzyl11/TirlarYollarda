@@ -27,6 +27,22 @@ export default function JobsPage() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+
+  // Türkiye'nin büyük şehirleri
+  const cities = [
+    'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Amasya', 'Ankara', 'Antalya', 'Artvin',
+    'Aydın', 'Balıkesir', 'Bilecik', 'Bingöl', 'Bitlis', 'Bolu', 'Burdur', 'Bursa',
+    'Çanakkale', 'Çankırı', 'Çorum', 'Denizli', 'Diyarbakır', 'Edirne', 'Elazığ', 'Erzincan',
+    'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane', 'Hakkari', 'Hatay', 'Isparta',
+    'Mersin', 'İstanbul', 'İzmir', 'Kars', 'Kastamonu', 'Kayseri', 'Kırklareli', 'Kırşehir',
+    'Kocaeli', 'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Kahramanmaraş', 'Mardin', 'Muğla',
+    'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Rize', 'Sakarya', 'Samsun', 'Siirt',
+    'Sinop', 'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Şanlıurfa', 'Uşak',
+    'Van', 'Yozgat', 'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman',
+    'Şırnak', 'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce'
+  ];
+
   const [filters, setFilters] = useState({
     city: '',
     loadType: '',
@@ -47,6 +63,20 @@ export default function JobsPage() {
   useEffect(() => {
     loadJobs();
   }, [pagination.page, filters]);
+
+  // Dropdown'ı dışına tıklandığında kapat
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.relative')) {
+        setShowCityDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const loadJobs = async () => {
     try {
@@ -82,6 +112,18 @@ export default function JobsPage() {
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const handleCitySelect = (city) => {
+    setFilters(prev => ({ ...prev, city: city }));
+    setShowCityDropdown(false);
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const filteredCities = (searchTerm) => {
+    return cities.filter(city => 
+      city.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   };
 
   const clearFilters = () => {
@@ -133,13 +175,13 @@ export default function JobsPage() {
                   placeholder="İş ara... (örn: İstanbul-Ankara, Parsiyel)"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="input-field pl-10"
+                  className="input-field pl-10 !text-black"
                 />
               </div>
               <button
                 type="button"
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-black"
               >
                 <SlidersHorizontal className="w-5 h-5 mr-2" />
                 Filtreler
@@ -159,13 +201,34 @@ export default function JobsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Şehir</label>
-                  <input
-                    type="text"
-                    placeholder="Şehir ara..."
-                    value={filters.city}
-                    onChange={(e) => handleFilterChange('city', e.target.value)}
-                    className="input-field"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Şehir seçin..."
+                      value={filters.city}
+                      onChange={(e) => {
+                        handleFilterChange('city', e.target.value);
+                        setShowCityDropdown(true);
+                      }}
+                      onFocus={() => setShowCityDropdown(true)}
+                      className="input-field pr-10 !text-black"
+                    />
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    
+                    {showCityDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        {filteredCities(filters.city).map((city) => (
+                          <div
+                            key={city}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-black"
+                            onClick={() => handleCitySelect(city)}
+                          >
+                            {city}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 <div>
@@ -173,7 +236,7 @@ export default function JobsPage() {
                   <select
                     value={filters.loadType}
                     onChange={(e) => handleFilterChange('loadType', e.target.value)}
-                    className="input-field"
+                    className="input-field text-black"
                   >
                     <option value="">Tümü</option>
                     <option value="parsiyel">Parsiyel</option>
@@ -189,7 +252,7 @@ export default function JobsPage() {
                   <select
                     value={filters.vehicleType}
                     onChange={(e) => handleFilterChange('vehicleType', e.target.value)}
-                    className="input-field"
+                    className="input-field text-black"
                   >
                     <option value="">Tümü</option>
                     <option value="kamyon">Kamyon</option>
@@ -204,7 +267,7 @@ export default function JobsPage() {
                   <select
                     value={filters.sortBy}
                     onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                    className="input-field"
+                    className="input-field text-black"
                   >
                     <option value="newest">En Yeni</option>
                     <option value="oldest">En Eski</option>
@@ -223,7 +286,7 @@ export default function JobsPage() {
                     placeholder="0"
                     value={filters.minAmount}
                     onChange={(e) => handleFilterChange('minAmount', e.target.value)}
-                    className="input-field"
+                    className="input-field !text-black"
                   />
                 </div>
                 
@@ -234,7 +297,7 @@ export default function JobsPage() {
                     placeholder="100000"
                     value={filters.maxAmount}
                     onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
-                    className="input-field"
+                    className="input-field !text-black"
                   />
                 </div>
               </div>
@@ -242,7 +305,7 @@ export default function JobsPage() {
               <div className="flex justify-between items-center">
                 <button
                   onClick={clearFilters}
-                  className="text-gray-600 hover:text-gray-800 font-medium"
+                  className="text-gray-800 hover:text-black font-medium"
                 >
                   Filtreleri Temizle
                 </button>

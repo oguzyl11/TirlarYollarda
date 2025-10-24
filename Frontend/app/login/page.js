@@ -73,18 +73,17 @@ export default function LoginPage() {
       <div className="max-w-md w-full">
         {/* Logo & Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="w-12 h-12 relative">
+          <Link href="/" className="inline-flex items-center mb-6">
+            <div className="w-20 h-20 relative">
               <Image
                 src="/logo.png"
-                alt="TırlarYollarda Logo"
-                width={48}
-                height={48}
+                alt="LoadING Logo"
+                width={80}
+                height={80}
                 className="rounded-xl"
                 priority
               />
             </div>
-            <span className="text-2xl font-bold text-gray-900">TırlarYollarda</span>
           </Link>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Hoş Geldiniz</h2>
           <p className="text-gray-600">Hesabınıza giriş yapın</p>

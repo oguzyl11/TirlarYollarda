@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Truck, Mail, Phone, MapPin, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
 
 export default function Footer() {
@@ -8,11 +9,18 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           {/* Company Info */}
           <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Truck className="w-6 h-6 text-white" />
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 relative">
+                <Image
+                  src="/logo.png"
+                  alt="LoadING Logo"
+                  width={48}
+                  height={48}
+                  className="rounded-lg"
+                  priority
+                />
               </div>
-              <span className="text-xl font-bold text-white">TırlarYollarda</span>
+              <span className="text-xl font-bold text-white">LoadING</span>
             </div>
             <p className="text-sm text-gray-400 mb-4">
               Nakliyat sektörünün dijital buluşma noktası. Güvenilir, hızlı ve kolay.

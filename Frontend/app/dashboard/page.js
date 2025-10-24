@@ -155,18 +155,17 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 relative">
+            <Link href="/" className="flex items-center">
+              <div className="w-16 h-16 relative">
                 <Image
                   src="/logo.png"
-                  alt="TırlarYollarda Logo"
-                  width={32}
-                  height={32}
+                  alt="LoadING Logo"
+                  width={64}
+                  height={64}
                   className="rounded-lg"
                   priority
                 />
               </div>
-              <span className="text-xl font-bold text-gray-900">TırlarYollarda</span>
             </Link>
 
             {/* User Menu */}

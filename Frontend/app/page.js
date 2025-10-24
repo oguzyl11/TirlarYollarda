@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, MapPin, Truck, Package, Star, TrendingUp, Users, Building2, ChevronRight, Clock, DollarSign } from 'lucide-react';
+import { Search, MapPin, Truck, Package, Star, TrendingUp, Users, Building2, ChevronRight, Clock, DollarSign, ChevronDown } from 'lucide-react';
 import { jobAPI, userAPI } from '../lib/api';
 import Header from '../components/Header';
 
@@ -11,9 +11,38 @@ export default function Home() {
   const [recentJobs, setRecentJobs] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCity, setSearchCity] = useState('');
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+
+  // Türkiye'nin büyük şehirleri
+  const cities = [
+    'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Amasya', 'Ankara', 'Antalya', 'Artvin',
+    'Aydın', 'Balıkesir', 'Bilecik', 'Bingöl', 'Bitlis', 'Bolu', 'Burdur', 'Bursa',
+    'Çanakkale', 'Çankırı', 'Çorum', 'Denizli', 'Diyarbakır', 'Edirne', 'Elazığ', 'Erzincan',
+    'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane', 'Hakkari', 'Hatay', 'Isparta',
+    'Mersin', 'İstanbul', 'İzmir', 'Kars', 'Kastamonu', 'Kayseri', 'Kırklareli', 'Kırşehir',
+    'Kocaeli', 'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Kahramanmaraş', 'Mardin', 'Muğla',
+    'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Rize', 'Sakarya', 'Samsun', 'Siirt',
+    'Sinop', 'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Şanlıurfa', 'Uşak',
+    'Van', 'Yozgat', 'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman',
+    'Şırnak', 'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce'
+  ];
 
   useEffect(() => {
     loadJobs();
+  }, []);
+
+  // Dropdown'ı dışına tıklandığında kapat
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.relative')) {
+        setShowCityDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const loadJobs = async () => {
@@ -25,6 +54,17 @@ export default function Home() {
     } catch (error) {
       console.error('İlanlar yüklenemedi:', error);
     }
+  };
+
+  const handleCitySelect = (city) => {
+    setSearchCity(city);
+    setShowCityDropdown(false);
+  };
+
+  const filteredCities = (searchTerm) => {
+    return cities.filter(city => 
+      city.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   };
 
   const handleSearch = (e) => {
@@ -60,18 +100,37 @@ export default function Home() {
                   placeholder="İş ara... (örn: İstanbul-Ankara)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 outline-none text-gray-600"
+                  className="flex-1 outline-none !text-black"
                 />
               </div>
-              <div className="flex-1 flex items-center space-x-3 pr-3">
+              <div className="flex-1 flex items-center space-x-3 pr-3 relative">
                 <MapPin className="w-5 h-5 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Şehir"
                   value={searchCity}
-                  onChange={(e) => setSearchCity(e.target.value)}
-                  className="flex-1 outline-none text-gray-600"
+                  onChange={(e) => {
+                    setSearchCity(e.target.value);
+                    setShowCityDropdown(true);
+                  }}
+                  onFocus={() => setShowCityDropdown(true)}
+                  className="flex-1 outline-none text-black pr-8"
                 />
+                <ChevronDown className="absolute right-3 w-4 h-4 text-gray-400" />
+                
+                {showCityDropdown && (
+                  <div className="absolute z-10 w-full top-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    {filteredCities(searchCity).map((city) => (
+                      <div
+                        key={city}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-black"
+                        onClick={() => handleCitySelect(city)}
+                      >
+                        {city}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <button type="submit" className="btn-primary whitespace-nowrap">
                 İş Ara

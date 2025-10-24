@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mail, Lock, Eye, EyeOff, Truck, User, Phone, Building2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Truck, User, Phone, Building2, AlertCircle, CheckCircle, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -16,6 +16,22 @@ export default function RegisterPage() {
   const [userType, setUserType] = useState('driver');
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState(1);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+
+  // Türkiye'nin büyük şehirleri
+  const cities = [
+    'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Amasya', 'Ankara', 'Antalya', 'Artvin',
+    'Aydın', 'Balıkesir', 'Bilecik', 'Bingöl', 'Bitlis', 'Bolu', 'Burdur', 'Bursa',
+    'Çanakkale', 'Çankırı', 'Çorum', 'Denizli', 'Diyarbakır', 'Edirne', 'Elazığ', 'Erzincan',
+    'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane', 'Hakkari', 'Hatay', 'Isparta',
+    'Mersin', 'İstanbul', 'İzmir', 'Kars', 'Kastamonu', 'Kayseri', 'Kırklareli', 'Kırşehir',
+    'Kocaeli', 'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Kahramanmaraş', 'Mardin', 'Muğla',
+    'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Rize', 'Sakarya', 'Samsun', 'Siirt',
+    'Sinop', 'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Şanlıurfa', 'Uşak',
+    'Van', 'Yozgat', 'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman',
+    'Şırnak', 'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce'
+  ];
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -48,6 +64,20 @@ export default function RegisterPage() {
       setFormData(prev => ({ ...prev, userType: type }));
     }
   }, [searchParams]);
+
+  // Dropdown'ı dışına tıklandığında kapat
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.relative')) {
+        setShowCityDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const validateStep1 = () => {
     const newErrors = {};
@@ -102,6 +132,23 @@ export default function RegisterPage() {
     }
   };
 
+  const handleCitySelect = (city) => {
+    setFormData(prev => ({
+      ...prev,
+      profile: {
+        ...prev.profile,
+        city: city
+      }
+    }));
+    setShowCityDropdown(false);
+  };
+
+  const filteredCities = (searchTerm) => {
+    return cities.filter(city => 
+      city.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep3()) return;
@@ -148,18 +195,17 @@ export default function RegisterPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="w-12 h-12 relative">
+          <Link href="/" className="inline-flex items-center mb-6">
+            <div className="w-20 h-20 relative">
               <Image
                 src="/logo.png"
-                alt="TırlarYollarda Logo"
-                width={48}
-                height={48}
+                alt="LoadING Logo"
+                width={80}
+                height={80}
                 className="rounded-xl"
                 priority
               />
             </div>
-            <span className="text-2xl font-bold text-gray-900">TırlarYollarda</span>
           </Link>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Hesap Oluştur</h2>
           <p className="text-gray-600">Hemen ücretsiz kayıt olun ve başlayın</p>
@@ -378,14 +424,35 @@ export default function RegisterPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Şehir</label>
-                  <input
-                    type="text"
-                    name="profile.city"
-                    value={formData.profile.city}
-                    onChange={handleChange}
-                    className={`input-field ${errors.city ? 'border-red-500' : ''}`}
-                    placeholder="İstanbul"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="profile.city"
+                      value={formData.profile.city}
+                      onChange={(e) => {
+                        handleChange(e);
+                        setShowCityDropdown(true);
+                      }}
+                      onFocus={() => setShowCityDropdown(true)}
+                      className={`input-field pr-10 !text-black ${errors.city ? 'border-red-500' : ''}`}
+                      placeholder="Şehir seçin..."
+                    />
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    
+                    {showCityDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        {filteredCities(formData.profile.city).map((city) => (
+                          <div
+                            key={city}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-black"
+                            onClick={() => handleCitySelect(city)}
+                          >
+                            {city}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   {errors.city && (
                     <div className="text-red-600 text-sm mt-1">{errors.city}</div>
                   )}
