@@ -2,252 +2,91 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
+import { userAPI } from '../../../lib/api';
 import { 
-  Building2, 
   ArrowLeft, 
   MapPin, 
   Star, 
   Briefcase, 
   Phone, 
   Mail, 
-  Globe,
+  Globe, 
   Calendar,
-  DollarSign,
-  Truck,
   Users,
   CheckCircle,
+  Building2,
+  Truck,
   Clock,
-  MessageSquare,
+  Award,
+  MessageCircle,
+  Heart,
+  Share2,
   Filter,
   Search
 } from 'lucide-react';
-import { useAuthStore } from '../../../store/authStore';
-import { jobAPI } from '../../../lib/api';
-import toast, { Toaster } from 'react-hot-toast';
 
-export default function CompanyDetailPage() {
+export default function CompanyProfile() {
   const params = useParams();
   const router = useRouter();
-  const { user, isAuthenticated, initAuth } = useAuthStore();
   const [company, setCompany] = useState(null);
-  const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [jobsLoading, setJobsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all');
+  const [activeTab, setActiveTab] = useState('jobs');
+  const [jobs, setJobs] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
-    initAuth();
-    loadCompanyData();
+    if (params.id) {
+      fetchCompanyDetails();
+    }
   }, [params.id]);
 
-  const loadCompanyData = async () => {
+  const fetchCompanyDetails = async () => {
     try {
       setLoading(true);
+      const response = await userAPI.getCompanyDetails(params.id);
       
-      // Mock company data - gerçekte API'den gelecek
-      const mockCompanies = {
-        1: {
-          id: 1,
-          name: 'Mega Lojistik A.Ş.',
-          city: 'İstanbul',
-          address: 'Maslak Mahallesi, Büyükdere Caddesi No:123',
-          rating: 4.8,
-          reviewCount: 156,
-          jobCount: 45,
-          verified: true,
-          phone: '+90 212 555 0123',
-          email: 'info@megalojistik.com',
-          website: 'www.megalojistik.com',
-          description: 'Türkiye\'nin önde gelen lojistik firmalarından biri olan Mega Lojistik, 15 yıllık deneyimi ile güvenilir taşımacılık hizmetleri sunmaktadır.',
-          foundedYear: 2008,
-          employeeCount: 250,
-          fleetSize: 150,
-          specialties: ['Kargo Taşımacılığı', 'Parsiyel Yük', 'Tam Yük', 'Konteyner Taşımacılığı'],
-          workingHours: '7/24',
-          certifications: ['ISO 9001', 'ISO 14001', 'OHSAS 18001']
-        },
-        2: {
-          id: 2,
-          name: 'Hızlı Taşıma Ltd.',
-          city: 'Ankara',
-          address: 'Çankaya Mahallesi, Atatürk Bulvarı No:456',
-          rating: 4.6,
-          reviewCount: 89,
-          jobCount: 32,
-          verified: true,
-          phone: '+90 312 555 0456',
-          email: 'info@hizlitasma.com',
-          website: 'www.hizlitasma.com',
-          description: 'Ankara merkezli hızlı taşımacılık firması. Acil kargo ve ekspres taşımacılık konularında uzman.',
-          foundedYear: 2015,
-          employeeCount: 120,
-          fleetSize: 80,
-          specialties: ['Ekspres Taşımacılık', 'Acil Kargo', 'Şehir İçi Dağıtım'],
-          workingHours: '6:00 - 22:00',
-          certifications: ['ISO 9001']
-        },
-        3: {
-          id: 3,
-          name: 'Güven Nakliyat',
-          city: 'İzmir',
-          address: 'Konak Mahallesi, Cumhuriyet Meydanı No:789',
-          rating: 4.9,
-          reviewCount: 203,
-          jobCount: 67,
-          verified: true,
-          phone: '+90 232 555 0789',
-          email: 'info@guvennakliyat.com',
-          website: 'www.guvennakliyat.com',
-          description: 'İzmir ve çevre illerde güvenilir nakliyat hizmetleri sunan köklü firma. Müşteri memnuniyeti odaklı hizmet anlayışı.',
-          foundedYear: 2000,
-          employeeCount: 180,
-          fleetSize: 120,
-          specialties: ['Bölgesel Taşımacılık', 'Ev Eşyası Taşıma', 'Ofis Taşıma'],
-          workingHours: '7/24',
-          certifications: ['ISO 9001', 'ISO 14001']
-        },
-        4: {
-          id: 4,
-          name: 'Anadolu Kargo',
-          city: 'Bursa',
-          address: 'Osmangazi Mahallesi, Uludağ Caddesi No:321',
-          rating: 4.5,
-          reviewCount: 78,
-          jobCount: 28,
-          verified: false,
-          phone: '+90 224 555 0321',
-          email: 'info@anadolukargo.com',
-          website: 'www.anadolukargo.com',
-          description: 'Bursa merkezli kargo ve taşımacılık firması. Bölgesel hizmetlerde uzman.',
-          foundedYear: 2012,
-          employeeCount: 95,
-          fleetSize: 60,
-          specialties: ['Kargo Taşımacılığı', 'Bölgesel Dağıtım'],
-          workingHours: '8:00 - 20:00',
-          certifications: []
-        },
-        5: {
-          id: 5,
-          name: 'Express Lojistik',
-          city: 'Antalya',
-          address: 'Muratpaşa Mahallesi, Atatürk Caddesi No:654',
-          rating: 4.7,
-          reviewCount: 134,
-          jobCount: 41,
-          verified: true,
-          phone: '+90 242 555 0654',
-          email: 'info@expresslojistik.com',
-          website: 'www.expresslojistik.com',
-          description: 'Antalya ve çevre illerde ekspres lojistik hizmetleri sunan modern firma.',
-          foundedYear: 2018,
-          employeeCount: 110,
-          fleetSize: 75,
-          specialties: ['Ekspres Lojistik', 'Turizm Taşımacılığı', 'Hava Kargo'],
-          workingHours: '7/24',
-          certifications: ['ISO 9001', 'IATA']
-        },
-        6: {
-          id: 6,
-          name: 'Yıldırım Taşımacılık',
-          city: 'Konya',
-          address: 'Meram Mahallesi, Mevlana Caddesi No:987',
-          rating: 4.4,
-          reviewCount: 56,
-          jobCount: 19,
-          verified: false,
-          phone: '+90 332 555 0987',
-          email: 'info@yildirimtasimacilik.com',
-          website: 'www.yildirimtasimacilik.com',
-          description: 'Konya merkezli geleneksel taşımacılık firması. Yerel hizmetlerde deneyimli.',
-          foundedYear: 2005,
-          employeeCount: 65,
-          fleetSize: 45,
-          specialties: ['Yerel Taşımacılık', 'Tarım Ürünleri Taşıma'],
-          workingHours: '7:00 - 19:00',
-          certifications: []
-        }
-      };
-
-      const companyData = mockCompanies[params.id];
-      if (companyData) {
-        setCompany(companyData);
-        loadCompanyJobs(companyData.id);
-      } else {
-        toast.error('Şirket bulunamadı');
-        router.push('/companies');
+      if (response.data.success) {
+        const { company, jobs, reviews } = response.data.data;
+        setCompany(company);
+        setJobs(jobs);
+        setReviews(reviews);
       }
     } catch (error) {
-      console.error('Şirket verileri yüklenemedi:', error);
-      toast.error('Şirket verileri yüklenirken hata oluştu');
+      console.error('Şirket detayları getirilemedi:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadCompanyJobs = async (companyId) => {
-    try {
-      setJobsLoading(true);
-      // Mock jobs data - gerçekte API'den gelecek
-      const mockJobs = [
-        {
-          _id: '1',
-          title: 'İstanbul-Ankara Kargo Taşıma',
-          description: 'Acil kargo taşıma işi. Güvenli ve hızlı teslimat gerekiyor.',
-          route: { from: { city: 'İstanbul' }, to: { city: 'Ankara' } },
-          payment: { amount: 2500, currency: 'TL' },
-          schedule: { startDate: '2024-01-15T08:00:00Z' },
-          loadDetails: { type: 'Kargo', weight: '2' },
-          status: 'active',
-          createdAt: '2024-01-10T10:00:00Z'
-        },
-        {
-          _id: '2',
-          title: 'İzmir-Bursa Parsiyel Yük',
-          description: 'Parsiyel yük taşıma işi. Ekonomik çözüm aranıyor.',
-          route: { from: { city: 'İzmir' }, to: { city: 'Bursa' } },
-          payment: { amount: 1800, currency: 'TL' },
-          schedule: { startDate: '2024-01-18T09:00:00Z' },
-          loadDetails: { type: 'Parsiyel', weight: '5' },
-          status: 'active',
-          createdAt: '2024-01-12T14:30:00Z'
-        },
-        {
-          _id: '3',
-          title: 'Antalya-Konya Tam Yük',
-          description: 'Tam yük taşıma işi. Büyük araç gerekiyor.',
-          route: { from: { city: 'Antalya' }, to: { city: 'Konya' } },
-          payment: { amount: 4500, currency: 'TL' },
-          schedule: { startDate: '2024-01-20T07:00:00Z' },
-          loadDetails: { type: 'Tam Yük', weight: '20' },
-          status: 'active',
-          createdAt: '2024-01-14T16:45:00Z'
-        }
-      ];
-      
-      setJobs(mockJobs);
-    } catch (error) {
-      console.error('İşler yüklenemedi:', error);
-      toast.error('İşler yüklenirken hata oluştu');
-    } finally {
-      setJobsLoading(false);
-    }
+  const handleFollow = () => {
+    setIsFollowing(!isFollowing);
   };
 
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterType === 'all' || job.loadDetails.type === filterType;
-    return matchesSearch && matchesFilter;
-  });
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    // Toast notification eklenebilir
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Şirket bilgileri yükleniyor...</p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+            <div className="bg-white rounded-2xl p-8 mb-6">
+              <div className="flex items-center space-x-6 mb-8">
+                <div className="w-24 h-24 bg-gray-200 rounded-2xl"></div>
+                <div className="flex-1">
+                  <div className="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -255,11 +94,13 @@ export default function CompanyDetailPage() {
 
   if (!company) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Şirket bulunamadı</h1>
-          <Link href="/companies" className="text-blue-600 hover:text-blue-700">
-            Şirketler listesine dön
+          <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Şirket Bulunamadı</h2>
+          <p className="text-gray-600 mb-6">Aradığınız şirket mevcut değil.</p>
+          <Link href="/companies" className="btn-primary">
+            Şirketlere Dön
           </Link>
         </div>
       </div>
@@ -268,250 +109,349 @@ export default function CompanyDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Toaster position="top-right" />
-      
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Link href="/companies" className="flex items-center text-gray-600 hover:text-blue-600">
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Geri Dön
-              </Link>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">{company.name}</span>
-              </div>
-            </div>
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            <h1 className="text-xl font-bold text-gray-800">{company.employerDetails?.companyName}</h1>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Company Info */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Company Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-start space-x-4 mb-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Building2 className="w-10 h-10 text-white" />
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Company Profile Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+          <div className="flex items-start space-x-6 mb-8">
+            {/* Company Logo */}
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-12 h-12 text-white" />
+            </div>
+            
+            {/* Company Info */}
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-3">
+                <h2 className="text-2xl font-bold text-gray-800">{company.employerDetails?.companyName}</h2>
+                {company.verified && (
+                  <span className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-blue-600" />
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex items-center space-x-2 text-gray-600 mb-4">
+                <MapPin className="w-4 h-4" />
+                <span>{company.profile?.city}</span>
+                <span>•</span>
+                <span>{company.employerDetails?.companyType}</span>
+                <span>•</span>
+                <span>{company.employerDetails?.establishedYear} yılından beri</span>
+              </div>
+
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                {company.employerDetails?.description}
+              </p>
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="text-center p-3 bg-gray-50 rounded-xl">
+                  <div className="text-2xl font-bold text-blue-600">{company.stats?.totalJobs}</div>
+                  <div className="text-sm text-gray-600">Aktif İlan</div>
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h1 className="text-2xl font-bold text-gray-900">{company.name}</h1>
-                    {company.verified && (
-                      <CheckCircle className="w-6 h-6 text-green-600" />
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-600 mb-3">
-                    <MapPin className="w-4 h-4" />
-                    <span>{company.city}</span>
-                  </div>
-                  <div className="flex items-center space-x-1 mb-2">
-                    <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                    <span className="font-semibold">{company.rating}</span>
-                    <span className="text-gray-500">({company.reviewCount} değerlendirme)</span>
-                  </div>
+                <div className="text-center p-3 bg-gray-50 rounded-xl">
+                  <div className="text-2xl font-bold text-green-600">{company.stats?.completedJobs}</div>
+                  <div className="text-sm text-gray-600">Tamamlanan</div>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded-xl">
+                  <div className="text-2xl font-bold text-purple-600">{company.stats?.activeDrivers}</div>
+                  <div className="text-sm text-gray-600">Aktif Şoför</div>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded-xl">
+                  <div className="text-2xl font-bold text-orange-600">{company.stats?.yearsExperience}</div>
+                  <div className="text-sm text-gray-600">Yıl Deneyim</div>
                 </div>
               </div>
 
-              <p className="text-gray-600 mb-6">{company.description}</p>
-
-              {/* Contact Info */}
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-700">{company.phone}</span>
+              {/* Rating */}
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="flex items-center space-x-1">
+                  <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                  <span className="font-bold text-gray-800">
+                    {typeof company.rating === 'object' ? company.rating?.average || '4.5' : company.rating || '4.5'}
+                  </span>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Mail className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-700">{company.email}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Globe className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-700">{company.website}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <MapPin className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-700">{company.address}</span>
-                </div>
-              </div>
-
-              {/* Company Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{company.fleetSize}</div>
-                  <div className="text-sm text-gray-600">Araç Filosu</div>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{company.employeeCount}</div>
-                  <div className="text-sm text-gray-600">Çalışan</div>
-                </div>
+                <span className="text-gray-500">
+                  ({typeof company.rating === 'object' ? company.rating?.count || 0 : company.reviewCount || 0} değerlendirme)
+                </span>
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-3">
-                <button className="w-full btn-primary py-3 flex items-center justify-center">
-                  <MessageSquare className="w-5 h-5 mr-2" />
-                  İletişime Geç
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={handleFollow}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                    isFollowing 
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
                 </button>
-                <button className="w-full btn-secondary py-3 flex items-center justify-center">
-                  <Star className="w-5 h-5 mr-2" />
-                  Değerlendir
+                <button
+                  onClick={handleShare}
+                  className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                >
+                  <Share2 className="w-5 h-5 text-gray-600" />
+                </button>
+                <button className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
+                  <MessageCircle className="w-5 h-5 text-gray-600" />
                 </button>
               </div>
-            </div>
-
-            {/* Company Details */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Şirket Detayları</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Kuruluş Yılı</span>
-                  <span className="font-medium">{company.foundedYear}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Çalışma Saatleri</span>
-                  <span className="font-medium">{company.workingHours}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Doğrulama</span>
-                  <span className={`font-medium ${company.verified ? 'text-green-600' : 'text-gray-500'}`}>
-                    {company.verified ? 'Doğrulanmış' : 'Doğrulanmamış'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Specialties */}
-              <div className="mt-6">
-                <h4 className="text-sm font-medium text-gray-900 mb-3">Uzmanlık Alanları</h4>
-                <div className="flex flex-wrap gap-2">
-                  {company.specialties.map((specialty, index) => (
-                    <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                      {specialty}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Certifications */}
-              {company.certifications.length > 0 && (
-                <div className="mt-6">
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Sertifikalar</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {company.certifications.map((cert, index) => (
-                      <span key={index} className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
-                        {cert}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Jobs Section */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">Aktif İş İlanları</h2>
-                  <span className="text-sm text-gray-500">{jobs.length} ilan</span>
+          {/* Contact Info */}
+          <div className="grid md:grid-cols-2 gap-6 pt-6 border-t border-gray-200">
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-4">İletişim Bilgileri</h3>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Phone className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700">{company.profile?.phone}</span>
                 </div>
-
-                {/* Search and Filter */}
-                <div className="flex space-x-4">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="İş ara..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="input-field pl-10"
-                    />
-                  </div>
-                  <select
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value)}
-                    className="input-field w-48"
-                  >
-                    <option value="all">Tüm Türler</option>
-                    <option value="Kargo">Kargo</option>
-                    <option value="Parsiyel">Parsiyel</option>
-                    <option value="Tam Yük">Tam Yük</option>
-                    <option value="Konteyner">Konteyner</option>
-                  </select>
+                <div className="flex items-center space-x-3">
+                  <Mail className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700">{company.email}</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Globe className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700">{company.employerDetails?.website}</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <MapPin className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700">{company.employerDetails?.address}</span>
                 </div>
               </div>
-
-              {/* Jobs List */}
-              <div className="p-6">
-                {jobsLoading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="animate-pulse">
-                        <div className="h-24 bg-gray-200 rounded-lg"></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : filteredJobs.length > 0 ? (
-                  <div className="space-y-4">
-                    {filteredJobs.map((job) => (
-                      <Link
-                        key={job._id}
-                        href={`/jobs/${job._id}`}
-                        className="block border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 mb-1">{job.title}</h3>
-                            <p className="text-gray-600 text-sm mb-3">{job.description}</p>
-                            <div className="flex items-center space-x-6 text-sm text-gray-500">
-                              <div className="flex items-center">
-                                <MapPin className="w-4 h-4 mr-1" />
-                                {job.route.from.city} → {job.route.to.city}
-                              </div>
-                              <div className="flex items-center">
-                                <DollarSign className="w-4 h-4 mr-1" />
-                                {job.payment.amount} {job.payment.currency}
-                              </div>
-                              <div className="flex items-center">
-                                <Calendar className="w-4 h-4 mr-1" />
-                                {new Date(job.schedule.startDate).toLocaleDateString('tr-TR')}
-                              </div>
-                              <div className="flex items-center">
-                                <Truck className="w-4 h-4 mr-1" />
-                                {job.loadDetails.type}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="ml-4 flex items-center">
-                            <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
-                              Aktif
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Bu şirketin aktif ilanı bulunmuyor</p>
-                  </div>
-                )}
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-4">Uzmanlık Alanları</h3>
+              <div className="flex flex-wrap gap-2">
+                {company.employerDetails?.specialties?.map((specialty, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
+                  >
+                    {specialty}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
         </div>
-      </main>
+
+        {/* Tabs */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveTab('jobs')}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'jobs'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                İş İlanları ({jobs.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('reviews')}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'reviews'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Değerlendirmeler ({reviews.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('about')}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'about'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Hakkında
+              </button>
+            </nav>
+          </div>
+
+          <div className="p-6">
+            {/* Jobs Tab */}
+            {activeTab === 'jobs' && (
+              <div className="space-y-4">
+                {jobs.length > 0 ? (
+                  jobs.map((job) => (
+                    <div key={job._id} className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="font-bold text-gray-800 text-lg mb-2">{job.title}</h3>
+                          <p className="text-gray-600 mb-3">{job.description}</p>
+                          <div className="flex items-center space-x-4 text-sm text-gray-500">
+                            <div className="flex items-center space-x-1">
+                              <MapPin className="w-4 h-4" />
+                              <span>{job.route?.from?.city} → {job.route?.to?.city}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Truck className="w-4 h-4" />
+                              <span>{job.loadDetails?.type}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-4 h-4" />
+                              <span>{new Date(job.schedule?.startDate).toLocaleDateString('tr-TR')}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-green-600 mb-1">
+                            {job.payment?.amount?.toLocaleString()} {job.payment?.currency}
+                          </div>
+                          <div className="text-sm text-gray-500">{job.views} görüntülenme</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                          Aktif
+                        </span>
+                        <Link
+                          href={`/jobs/${job._id}`}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          Detayları Gör
+                        </Link>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">Henüz İlan Yok</h3>
+                    <p className="text-gray-500">Bu şirket henüz iş ilanı yayınlamamış.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Reviews Tab */}
+            {activeTab === 'reviews' && (
+              <div className="space-y-6">
+                {reviews.length > 0 ? (
+                  reviews.map((review) => (
+                    <div key={review._id} className="border border-gray-200 rounded-xl p-6">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">
+                            {review.reviewer?.name?.charAt(0)}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <h4 className="font-semibold text-gray-800">{review.reviewer?.name}</h4>
+                            <div className="flex items-center space-x-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-gray-700 mb-3">{review.comment}</p>
+                          <div className="text-sm text-gray-500">
+                            {new Date(review.createdAt).toLocaleDateString('tr-TR')}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">Henüz Değerlendirme Yok</h3>
+                    <p className="text-gray-500">Bu şirket için henüz değerlendirme yapılmamış.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* About Tab */}
+            {activeTab === 'about' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-gray-800 mb-4">Şirket Hakkında</h3>
+                  <p className="text-gray-700 leading-relaxed mb-6">
+                    {company.employerDetails?.description}
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">Şirket Bilgileri</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Kuruluş Yılı:</span>
+                        <span className="font-medium">{company.employerDetails?.establishedYear}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Çalışan Sayısı:</span>
+                        <span className="font-medium">{company.employerDetails?.employeeCount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Şirket Türü:</span>
+                        <span className="font-medium">{company.employerDetails?.companyType}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Çalışma Saatleri:</span>
+                        <span className="font-medium">{company.employerDetails?.workingHours}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">İstatistikler</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Toplam İlan:</span>
+                        <span className="font-medium">{company.stats?.totalJobs}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tamamlanan İş:</span>
+                        <span className="font-medium">{company.stats?.completedJobs}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Aktif Şoför:</span>
+                        <span className="font-medium">{company.stats?.activeDrivers}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Deneyim:</span>
+                        <span className="font-medium">{company.stats?.yearsExperience} yıl</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
