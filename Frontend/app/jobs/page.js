@@ -169,13 +169,12 @@ export default function JobsPage() {
           <form onSubmit={handleSearch} className="mb-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
                   placeholder="İş ara... (örn: İstanbul-Ankara, Parsiyel)"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="input-field pl-10 !text-black"
+                  className="input-field !text-black"
                 />
               </div>
               <button
@@ -211,9 +210,8 @@ export default function JobsPage() {
                         setShowCityDropdown(true);
                       }}
                       onFocus={() => setShowCityDropdown(true)}
-                      className="input-field pr-10 !text-black"
+                      className="input-field !text-black"
                     />
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                     
                     {showCityDropdown && (
                       <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">

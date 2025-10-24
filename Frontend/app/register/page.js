@@ -259,24 +259,40 @@ export default function RegisterPage() {
 
         {/* Progress Steps */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between">
-            {[1, 2, 3].map((s) => (
-              <div key={s} className="flex items-center flex-1">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-                  step >= s ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {step > s ? <CheckCircle className="w-6 h-6" /> : s}
+          <div className="flex items-center justify-center">
+            {[
+              { step: 1, title: 'Hesap Bilgileri', icon: '📧' },
+              { step: 2, title: 'Kişisel Bilgiler', icon: '👤' },
+              { step: 3, title: 'Detaylar', icon: '📋' }
+            ].map((item, index) => (
+              <div key={item.step} className="flex items-center">
+                <div className="flex flex-col items-center">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold text-sm transition-all duration-300 ${
+                    step >= item.step 
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200' 
+                      : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    {step > item.step ? (
+                      <CheckCircle className="w-6 h-6 text-white" />
+                    ) : (
+                      <span className="text-lg">{item.icon}</span>
+                    )}
+                  </div>
+                  <span className={`text-xs mt-2 font-medium transition-colors duration-300 ${
+                    step >= item.step ? 'text-blue-600' : 'text-gray-500'
+                  }`}>
+                    {item.title}
+                  </span>
                 </div>
-                {s < 3 && (
-                  <div className={`flex-1 h-1 mx-2 ${step > s ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                {index < 2 && (
+                  <div className={`w-16 h-0.5 mx-6 transition-colors duration-300 ${
+                    step > item.step 
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600' 
+                      : 'bg-gray-200'
+                  }`} />
                 )}
               </div>
             ))}
-          </div>
-          <div className="flex justify-between mt-3 text-xs text-gray-600">
-            <span>Hesap Bilgileri</span>
-            <span>Kişisel Bilgiler</span>
-            <span>Detaylar</span>
           </div>
         </div>
 
@@ -289,15 +305,12 @@ export default function RegisterPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Email Adresi</label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
-                    </div>
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`input-field pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                      className={`input-field ${errors.email ? 'border-red-500' : ''}`}
                       placeholder="ornek@email.com"
                     />
                   </div>
@@ -312,15 +325,12 @@ export default function RegisterPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Şifre</label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
-                    </div>
                     <input
                       type={showPassword ? 'text' : 'password'}
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`input-field pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                      className={`input-field pr-10 ${errors.password ? 'border-red-500' : ''}`}
                       placeholder="••••••••"
                     />
                     <button
@@ -342,15 +352,12 @@ export default function RegisterPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Şifre Tekrar</label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
-                    </div>
                     <input
                       type={showPassword ? 'text' : 'password'}
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className={`input-field pl-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                      className={`input-field ${errors.confirmPassword ? 'border-red-500' : ''}`}
                       placeholder="••••••••"
                     />
                   </div>
@@ -405,15 +412,12 @@ export default function RegisterPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Telefon</label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-gray-400" />
-                    </div>
                     <input
                       type="tel"
                       name="profile.phone"
                       value={formData.profile.phone}
                       onChange={handleChange}
-                      className={`input-field pl-10 ${errors.phone ? 'border-red-500' : ''}`}
+                      className={`input-field ${errors.phone ? 'border-red-500' : ''}`}
                       placeholder="5XXXXXXXXX"
                     />
                   </div>
@@ -458,12 +462,12 @@ export default function RegisterPage() {
                   )}
                 </div>
 
-                <div className="flex space-x-3">
+                <div className="flex space-x-3 pt-6">
                   <button type="button" onClick={() => setStep(1)} className="flex-1 btn-secondary py-3">
-                    Geri
+                    ← Geri
                   </button>
                   <button type="button" onClick={handleNextStep} className="flex-1 btn-primary py-3">
-                    Devam Et
+                    Devam Et →
                   </button>
                 </div>
               </div>
@@ -564,16 +568,16 @@ export default function RegisterPage() {
                   </>
                 )}
 
-                <div className="flex space-x-3">
+                <div className="flex space-x-3 pt-6">
                   <button type="button" onClick={() => setStep(2)} className="flex-1 btn-secondary py-3">
-                    Geri
+                    ← Geri
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
                     className="flex-1 btn-primary py-3 disabled:opacity-50"
                   >
-                    {loading ? 'Kayıt Yapılıyor...' : 'Kayıt Ol'}
+                    {loading ? 'Kayıt Yapılıyor...' : 'Kayıt Ol ✓'}
                   </button>
                 </div>
               </div>

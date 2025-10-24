@@ -94,7 +94,6 @@ export default function Home() {
           <form onSubmit={handleSearch} className="max-w-4xl mx-auto">
             <div className="bg-white rounded-xl shadow-lg p-4 flex flex-col md:flex-row gap-3">
               <div className="flex-1 flex items-center space-x-3 border-r border-gray-200 pr-3">
-                <Search className="w-5 h-5 text-gray-400" />
                 <input
                   type="text"
                   placeholder="İş ara... (örn: İstanbul-Ankara)"
@@ -104,7 +103,6 @@ export default function Home() {
                 />
               </div>
               <div className="flex-1 flex items-center space-x-3 pr-3 relative">
-                <MapPin className="w-5 h-5 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Şehir"
