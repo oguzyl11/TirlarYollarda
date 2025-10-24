@@ -65,7 +65,18 @@ export const bidAPI = {
 
 export const userAPI = {
   getProfile: (id) => api.get(`/users/${id}`),
-  updateProfile: (data) => api.put('/users/profile', data),
+  updateProfile: (data) => {
+    // Check if data is FormData (for file uploads)
+    if (data instanceof FormData) {
+      return api.put('/users/profile', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    }
+    // Regular JSON data
+    return api.put('/users/profile', data);
+  },
   getCompanies: () => api.get('/users/companies'),
   getCompanyDetails: (id) => api.get(`/users/companies/${id}`),
   getDrivers: () => api.get('/users/drivers'),

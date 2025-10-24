@@ -69,6 +69,8 @@ router.post('/register', [
                 email: user.email,
                 userType: user.userType,
                 profile: user.profile,
+                driverDetails: user.driverDetails,
+                employerDetails: user.employerDetails,
                 rating: user.rating
             }
         });
@@ -141,6 +143,8 @@ router.post('/login', [
                 email: user.email,
                 userType: user.userType,
                 profile: user.profile,
+                driverDetails: user.driverDetails,
+                employerDetails: user.employerDetails,
                 rating: user.rating
             }
         });
@@ -184,6 +188,8 @@ router.get('/me', async (req, res) => {
                 email: user.email,
                 userType: user.userType,
                 profile: user.profile,
+                driverDetails: user.driverDetails,
+                employerDetails: user.employerDetails,
                 rating: user.rating,
                 verified: user.verified,
                 createdAt: user.createdAt

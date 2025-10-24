@@ -27,6 +27,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [formData, setFormData] = useState({
     profile: {
       firstName: '',
@@ -80,6 +82,11 @@ export default function ProfilePage() {
           companyAddress: user.employerDetails?.companyAddress || ''
         }
       });
+      
+      // Set existing profile image if available
+      if (user.profile?.profileImage) {
+        setImagePreview(`http://localhost:5001${user.profile.profileImage}`);
+      }
     }
   };
 
@@ -123,7 +130,25 @@ export default function ProfilePage() {
 
     setSaving(true);
     try {
-      const response = await userAPI.updateProfile(formData);
+      // Create FormData for file upload
+      const formDataToSend = new FormData();
+      
+      // Add profile data
+      formDataToSend.append('profile', JSON.stringify(formData.profile));
+      formDataToSend.append('driverDetails', JSON.stringify(formData.driverDetails));
+      formDataToSend.append('employerDetails', JSON.stringify(formData.employerDetails));
+      
+      // Add existing profile image if no new image is selected
+      if (!profileImage && user.profile?.profileImage) {
+        formDataToSend.append('existingProfileImage', user.profile.profileImage);
+      }
+      
+      // Add image if selected
+      if (profileImage) {
+        formDataToSend.append('profileImage', profileImage);
+      }
+
+      const response = await userAPI.updateProfile(formDataToSend);
       
       // AuthStore'u güncelle
       const { updateUser } = useAuthStore.getState();
@@ -131,6 +156,8 @@ export default function ProfilePage() {
       
       toast.success('Profil başarıyla güncellendi');
       setEditing(false);
+      setProfileImage(null);
+      setImagePreview(null);
     } catch (error) {
       console.error('Profile update error:', error);
       toast.error(error.response?.data?.message || 'Profil güncellenirken hata oluştu');
@@ -168,6 +195,38 @@ export default function ProfilePage() {
     loadUserData(); // Reset form data
     setEditing(false);
     setErrors({});
+    setProfileImage(null);
+    setImagePreview(null);
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // File type validation
+      if (!file.type.startsWith('image/')) {
+        toast.error('Lütfen geçerli bir resim dosyası seçin');
+        return;
+      }
+      
+      // File size validation (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Resim dosyası 5MB\'dan küçük olmalıdır');
+        return;
+      }
+
+      setProfileImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileInput = () => {
+    document.getElementById('profile-image-input').click();
   };
 
   if (!isAuthenticated || !user) {
@@ -240,14 +299,32 @@ export default function ProfilePage() {
               {/* Avatar */}
               <div className="text-center mb-6">
                 <div className="relative inline-block">
-                  <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <User className="w-12 h-12 text-white" />
+                  <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
+                    {imagePreview ? (
+                      <img 
+                        src={imagePreview} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <User className="w-12 h-12 text-white" />
+                    )}
                   </div>
                   {editing && (
-                    <button className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors">
+                    <button 
+                      onClick={triggerFileInput}
+                      className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
+                    >
                       <Camera className="w-4 h-4" />
                     </button>
                   )}
+                  <input
+                    id="profile-image-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900">
                   {formData.profile.firstName} {formData.profile.lastName}

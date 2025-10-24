@@ -1,7 +1,34 @@
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
 const router = express.Router();
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/profiles/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Sadece resim dosyaları kabul edilir!'), false);
+    }
+  }
+});
 
 // @route   GET /api/users/companies
 // @desc    Get all companies (employers)
@@ -526,11 +553,16 @@ router.get('/:id', async (req, res) => {
 // @route   PUT /api/users/profile
 // @desc    Update user profile
 // @access  Private
-router.put('/profile', auth, async (req, res) => {
+router.put('/profile', auth, upload.single('profileImage'), async (req, res) => {
     try {
-        // Mock user update for development
         console.log('Profile update request for user:', req.user.userId);
         console.log('Update data:', req.body);
+        console.log('Profile image:', req.file);
+        
+        // Parse JSON data
+        const profileData = JSON.parse(req.body.profile || '{}');
+        const driverDetails = JSON.parse(req.body.driverDetails || '{}');
+        const employerDetails = JSON.parse(req.body.employerDetails || '{}');
         
         // Mock user data
         const mockUser = {
@@ -538,14 +570,15 @@ router.put('/profile', auth, async (req, res) => {
             email: req.user.email,
             userType: req.user.userType,
             profile: {
-                firstName: req.body.profile?.firstName || 'Test',
-                lastName: req.body.profile?.lastName || 'User',
-                phone: req.body.profile?.phone || '',
-                city: req.body.profile?.city || '',
-                bio: req.body.profile?.bio || ''
+                firstName: profileData.firstName || 'Test',
+                lastName: profileData.lastName || 'User',
+                phone: profileData.phone || '',
+                city: profileData.city || '',
+                bio: profileData.bio || '',
+                profileImage: req.file ? `/uploads/profiles/${req.file.filename}` : (req.body.existingProfileImage || null)
             },
-            driverDetails: req.body.driverDetails || {},
-            employerDetails: req.body.employerDetails || {},
+            driverDetails: driverDetails,
+            employerDetails: employerDetails,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
