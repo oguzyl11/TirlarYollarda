@@ -3,6 +3,8 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -11,6 +13,24 @@ const generateToken = (userId) => {
         process.env.JWT_SECRET || 'your-secret-key-change-in-production',
         { expiresIn: '7d' }
     );
+};
+
+// Email transporter (mock for development)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER || 'test@example.com',
+        pass: process.env.EMAIL_PASS || 'test-password'
+    }
+});
+
+// Mock email sending for development
+const sendEmail = async (to, subject, html) => {
+    console.log('Mock Email Sent:');
+    console.log('To:', to);
+    console.log('Subject:', subject);
+    console.log('HTML:', html);
+    return true;
 };
 
 // @route   POST /api/auth/register
@@ -200,6 +220,133 @@ router.get('/me', async (req, res) => {
         res.status(401).json({
             success: false,
             message: 'Geçersiz token'
+        });
+    }
+});
+
+// @route   POST /api/auth/forgot-password
+// @desc    Send password reset email
+// @access  Public
+router.post('/forgot-password', [
+    body('email').isEmail().normalizeEmail()
+], async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                errors: errors.array()
+            });
+        }
+
+        const { email } = req.body;
+
+        // Find user by email
+        const user = await User.findOne({ email });
+        if (!user) {
+            // Don't reveal if email exists or not for security
+            return res.json({
+                success: true,
+                message: 'Eğer bu email adresi sistemimizde kayıtlıysa, şifre sıfırlama linki gönderilecektir'
+            });
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+        // Save reset token to user
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpiry = resetTokenExpiry;
+        await user.save();
+
+        // Create reset URL
+        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+
+        // Send email
+        const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #2563eb;">LoadING - Şifre Sıfırlama</h2>
+                <p>Merhaba ${user.profile?.firstName || 'Kullanıcı'},</p>
+                <p>Şifrenizi sıfırlamak için aşağıdaki linke tıklayın:</p>
+                <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 20px 0;">
+                    Şifremi Sıfırla
+                </a>
+                <p>Bu link 1 saat geçerlidir.</p>
+                <p>Eğer bu işlemi siz yapmadıysanız, bu emaili görmezden gelebilirsiniz.</p>
+                <hr style="margin: 30px 0;">
+                <p style="color: #666; font-size: 12px;">
+                    LoadING - Nakliyat Platformu<br>
+                    Bu email otomatik olarak gönderilmiştir.
+                </p>
+            </div>
+        `;
+
+        await sendEmail(email, 'LoadING - Şifre Sıfırlama', emailHtml);
+
+        res.json({
+            success: true,
+            message: 'Eğer bu email adresi sistemimizde kayıtlıysa, şifre sıfırlama linki gönderilecektir'
+        });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Şifre sıfırlama linki gönderilirken hata oluştu'
+        });
+    }
+});
+
+// @route   POST /api/auth/reset-password
+// @desc    Reset password with token
+// @access  Public
+router.post('/reset-password', [
+    body('token').notEmpty(),
+    body('password').isLength({ min: 6 })
+], async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                errors: errors.array()
+            });
+        }
+
+        const { token, password } = req.body;
+
+        // Find user by reset token
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpiry: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: 'Geçersiz veya süresi dolmuş şifre sıfırlama linki'
+            });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Update user password and clear reset token
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpiry = undefined;
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Şifreniz başarıyla sıfırlandı'
+        });
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Şifre sıfırlanırken hata oluştu'
         });
     }
 });

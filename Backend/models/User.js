@@ -8,18 +8,18 @@ const userSchema = new mongoose.Schema({
         unique: true,
         lowercase: true,
         trim: true,
-        match: [/^\w+([.-]?\w+)@\w+([.-]?\w+)(\.\w{2,3})+$/, 'Geçerli bir email giriniz']
+        match: [/^\w+([.-]?\w+)@\w+([.-]?\w+)(\.\w{2,3})+$/, 'Geï¿½erli bir email giriniz']
     },
     password: {
         type: String,
-        required: [true, 'Þifre gereklidir'],
-        minlength: [6, 'Þifre en az 6 karakter olmalýdýr'],
+        required: [true, 'ï¿½ifre gereklidir'],
+        minlength: [6, 'ï¿½ifre en az 6 karakter olmalï¿½dï¿½r'],
         select: false
     },
     userType: {
         type: String,
         enum: ['driver', 'employer'],
-        required: [true, 'Kullanýcý tipi gereklidir']
+        required: [true, 'Kullanï¿½cï¿½ tipi gereklidir']
     },
     profile: {
         firstName: {
@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
         phone: {
             type: String,
             required: [true, 'Telefon gereklidir'],
-            match: [/^[0-9]{10,11}$/, 'Geçerli bir telefon numarasý giriniz']
+            match: [/^[0-9]{10,11}$/, 'Geï¿½erli bir telefon numarasï¿½ giriniz']
         },
         city: String,
         avatar: {
@@ -102,6 +102,8 @@ const userSchema = new mongoose.Schema({
         default: true
     },
     lastLogin: Date,
+    resetPasswordToken: String,
+    resetPasswordExpiry: Date,
     createdAt: {
         type: Date,
         default: Date.now
