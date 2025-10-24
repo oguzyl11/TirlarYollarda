@@ -4,12 +4,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
-  HelpCircle, 
   MessageCircle, 
   Phone, 
   Mail, 
   Clock, 
-  Search,
   ChevronDown,
   ChevronRight,
   CheckCircle,
@@ -97,6 +95,17 @@ export default function SupportPage() {
 
   const toggleFaq = (id) => {
     setExpandedFaq(expandedFaq === id ? null : id);
+    
+    // Scroll to the FAQ item after state update
+    setTimeout(() => {
+      const element = document.getElementById(`faq-${id}`);
+      if (element) {
+        element.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }
+    }, 100);
   };
 
   return (
@@ -108,8 +117,15 @@ export default function SupportPage() {
       <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <HelpCircle className="w-10 h-10 text-white" />
+            <div className="w-20 h-20 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Image
+                src="/logo.png"
+                alt="LoadING Logo"
+                width={64}
+                height={64}
+                className="rounded-lg"
+                priority
+              />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Yardım Merkezi</h1>
             <p className="text-xl text-blue-100 max-w-3xl mx-auto mb-8">
@@ -119,15 +135,12 @@ export default function SupportPage() {
             {/* Search Box */}
             <div className="max-w-2xl mx-auto">
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
                 <input
                   type="text"
                   placeholder="Sorunuzu arayın..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-6 py-4 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 border-2 border-gray-200 focus:border-blue-500 bg-white shadow-lg"
                 />
               </div>
             </div>
@@ -149,7 +162,7 @@ export default function SupportPage() {
             <Link href="/register" className="bg-blue-50 rounded-xl p-6 hover:bg-blue-100 transition-colors">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                  <Users className="w-6 h-6 text-blue-600" />
+                  <span className="text-lg font-bold text-blue-600">👤</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Hesap Oluştur</h3>
               </div>
@@ -161,7 +174,7 @@ export default function SupportPage() {
             <Link href="/jobs" className="bg-green-50 rounded-xl p-6 hover:bg-green-100 transition-colors">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                  <Truck className="w-6 h-6 text-green-600" />
+                  <span className="text-lg font-bold text-green-600">🚛</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">İş İlanları</h3>
               </div>
@@ -173,7 +186,7 @@ export default function SupportPage() {
             <Link href="/profile" className="bg-purple-50 rounded-xl p-6 hover:bg-purple-100 transition-colors">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                  <Settings className="w-6 h-6 text-purple-600" />
+                  <span className="text-lg font-bold text-purple-600">⚙️</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Profil Ayarları</h3>
               </div>
@@ -197,7 +210,7 @@ export default function SupportPage() {
           
           <div className="space-y-4">
             {filteredFaqs.map((faq) => (
-              <div key={faq.id} className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div key={faq.id} id={`faq-${faq.id}`} className="bg-white rounded-xl shadow-sm border border-gray-200">
                 <button
                   onClick={() => toggleFaq(faq.id)}
                   className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -205,11 +218,9 @@ export default function SupportPage() {
                   <div className="flex items-center">
                     <span className="text-lg font-semibold text-gray-900">{faq.question}</span>
                   </div>
-                  {expandedFaq === faq.id ? (
-                    <ChevronDown className="w-5 h-5 text-gray-500" />
-                  ) : (
-                    <ChevronRight className="w-5 h-5 text-gray-500" />
-                  )}
+                  <span className="text-sm text-gray-500">
+                    {expandedFaq === faq.id ? 'Kapat' : 'Aç'}
+                  </span>
                 </button>
                 {expandedFaq === faq.id && (
                   <div className="px-6 pb-4">
@@ -241,7 +252,14 @@ export default function SupportPage() {
                 <div key={category.name} className="bg-gray-50 rounded-xl p-6">
                   <div className="flex items-center mb-4">
                     <div className={`w-12 h-12 bg-${category.color}-100 rounded-lg flex items-center justify-center mr-4`}>
-                      <Icon className={`w-6 h-6 text-${category.color}-600`} />
+                      <span className={`text-lg font-bold text-${category.color}-600`}>
+                        {category.name === 'Hesap' ? '👤' : 
+                         category.name === 'İş İlanları' ? '🚛' : 
+                         category.name === 'Teklifler' ? '💬' : 
+                         category.name === 'Ödeme' ? '💳' : 
+                         category.name === 'Doğrulama' ? '🛡️' : 
+                         category.name === 'Değerlendirme' ? '✅' : '📋'}
+                      </span>
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
@@ -253,8 +271,17 @@ export default function SupportPage() {
                       <button
                         key={faq.id}
                         onClick={() => {
-                          setSearchQuery(faq.question);
                           setExpandedFaq(faq.id);
+                          // Scroll to the FAQ item after state update
+                          setTimeout(() => {
+                            const element = document.getElementById(`faq-${faq.id}`);
+                            if (element) {
+                              element.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'center' 
+                              });
+                            }
+                          }, 100);
                         }}
                         className="block text-left text-sm text-gray-600 hover:text-blue-600 transition-colors"
                       >
@@ -262,7 +289,14 @@ export default function SupportPage() {
                       </button>
                     ))}
                     {categoryFaqs.length > 3 && (
-                      <p className="text-xs text-gray-500">+{categoryFaqs.length - 3} daha fazla</p>
+                      <button
+                        onClick={() => {
+                          setSearchQuery(category.name);
+                        }}
+                        className="block text-left text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
+                      >
+                        Tümünü Gör ({categoryFaqs.length} soru)
+                      </button>
                     )}
                   </div>
                 </div>
@@ -285,7 +319,7 @@ export default function SupportPage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-8 h-8 text-white" />
+                <span className="text-2xl">💬</span>
               </div>
               <h3 className="text-xl font-semibold mb-2">Canlı Destek</h3>
               <p className="text-blue-100 mb-4">
@@ -298,7 +332,7 @@ export default function SupportPage() {
             
             <div className="text-center">
               <div className="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Mail className="w-8 h-8 text-white" />
+                <span className="text-2xl">📧</span>
               </div>
               <h3 className="text-xl font-semibold mb-2">Email Desteği</h3>
               <p className="text-blue-100 mb-4">
@@ -314,7 +348,7 @@ export default function SupportPage() {
             
             <div className="text-center">
               <div className="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Phone className="w-8 h-8 text-white" />
+                <span className="text-2xl">📞</span>
               </div>
               <h3 className="text-xl font-semibold mb-2">Telefon Desteği</h3>
               <p className="text-blue-100 mb-4">
@@ -344,53 +378,53 @@ export default function SupportPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-gray-50 rounded-xl p-6 text-center">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-6 h-6 text-blue-600" />
+                <span className="text-lg font-bold text-blue-600">📖</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Kullanım Kılavuzu</h3>
               <p className="text-gray-600 text-sm mb-4">
                 Platformun tüm özelliklerini öğrenin
               </p>
               <button className="text-blue-600 font-semibold hover:text-blue-700 transition-colors">
-                İndir <Download className="w-4 h-4 inline ml-1" />
+                İndir →
               </button>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6 text-center">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-6 h-6 text-green-600" />
+                <span className="text-lg font-bold text-green-600">🛡️</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Güvenlik Rehberi</h3>
               <p className="text-gray-600 text-sm mb-4">
                 Güvenli kullanım için ipuçları
               </p>
               <button className="text-green-600 font-semibold hover:text-green-700 transition-colors">
-                Oku <ExternalLink className="w-4 h-4 inline ml-1" />
+                Oku →
               </button>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6 text-center">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Info className="w-6 h-6 text-purple-600" />
+                <span className="text-lg font-bold text-purple-600">❓</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">SSS</h3>
               <p className="text-gray-600 text-sm mb-4">
                 En sık sorulan sorular
               </p>
               <button className="text-purple-600 font-semibold hover:text-purple-700 transition-colors">
-                Görüntüle <ExternalLink className="w-4 h-4 inline ml-1" />
+                Görüntüle →
               </button>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6 text-center">
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-6 h-6 text-yellow-600" />
+                <span className="text-lg font-bold text-yellow-600">⏰</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Güncellemeler</h3>
               <p className="text-gray-600 text-sm mb-4">
                 Son güncellemeler ve yenilikler
               </p>
               <button className="text-yellow-600 font-semibold hover:text-yellow-700 transition-colors">
-                Takip Et <ExternalLink className="w-4 h-4 inline ml-1" />
+                Takip Et →
               </button>
             </div>
           </div>
