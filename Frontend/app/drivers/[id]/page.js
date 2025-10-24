@@ -2,206 +2,94 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
+import Header from '../../../components/Header';
+import Footer from '../../../components/Footer';
+import { userAPI } from '../../../lib/api';
 import { 
-  User, 
   ArrowLeft, 
   MapPin, 
   Star, 
-  Truck, 
-  Award, 
+  Briefcase, 
   Phone, 
   Mail, 
   Calendar,
-  Clock,
+  Users,
   CheckCircle,
-  MessageSquare,
-  Briefcase,
-  DollarSign,
-  Filter,
-  Search,
+  User,
+  Truck,
+  Clock,
+  Award,
+  MessageCircle,
+  Heart,
+  Share2,
+  FileText,
+  Languages,
   Shield,
-  Zap,
-  Heart
+  Car
 } from 'lucide-react';
-import { useAuthStore } from '../../../store/authStore';
-import toast, { Toaster } from 'react-hot-toast';
 
-export default function DriverDetailPage() {
+export default function DriverProfile() {
   const params = useParams();
   const router = useRouter();
-  const { user, isAuthenticated, initAuth } = useAuthStore();
   const [driver, setDriver] = useState(null);
-  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('about');
+  const [jobs, setJobs] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
-    initAuth();
-    loadDriverData();
+    if (params.id) {
+      fetchDriverDetails();
+    }
   }, [params.id]);
 
-  const loadDriverData = async () => {
+  const fetchDriverDetails = async () => {
     try {
       setLoading(true);
+      const response = await userAPI.getDriverDetails(params.id);
       
-      // Mock driver data - gerçekte API'den gelecek
-      const mockDrivers = {
-        1: {
-          id: 1,
-          name: 'Mehmet Yılmaz',
-          city: 'İstanbul',
-          rating: 4.9,
-          reviewCount: 245,
-          experience: 15,
-          vehicleType: 'Mega Tır',
-          completedJobs: 380,
-          verified: true,
-          phone: '+90 532 555 0123',
-          email: 'mehmet.yilmaz@email.com',
-          bio: '15 yıllık deneyimimle güvenilir ve profesyonel taşımacılık hizmeti sunuyorum. Müşteri memnuniyeti her zaman önceliğimdir.',
-          specialties: ['Uzun Mesafe Taşımacılığı', 'Kargo Taşımacılığı', 'Parsiyel Yük'],
-          languages: ['Türkçe', 'İngilizce'],
-          availability: 'Hemen',
-          hourlyRate: 150,
-          dailyRate: 1200,
-          licenseNumber: 'A123456789',
-          licenseExpiry: '2026-12-31',
-          insurance: 'Aktif',
-          vehicleInfo: {
-            brand: 'Mercedes',
-            model: 'Actros 1845',
-            year: 2020,
-            capacity: '40 Ton',
-            features: ['GPS Takip', 'Klima', 'ABS', 'ESP']
-          },
-          workingHours: '7/24',
-          preferredRoutes: ['İstanbul-Ankara', 'İstanbul-İzmir', 'İstanbul-Bursa'],
-          certifications: ['Sürücü Belgesi', 'ADR Sertifikası', 'İlk Yardım Sertifikası']
-        },
-        2: {
-          id: 2,
-          name: 'Ali Demir',
-          city: 'Ankara',
-          rating: 4.7,
-          reviewCount: 156,
-          experience: 10,
-          vehicleType: 'Kamyon',
-          completedJobs: 220,
-          verified: true,
-          phone: '+90 532 555 0456',
-          email: 'ali.demir@email.com',
-          bio: 'Ankara merkezli şoför. Bölgesel taşımacılıkta uzmanım. Hızlı ve güvenli teslimat garantisi.',
-          specialties: ['Bölgesel Taşımacılık', 'Kargo Taşımacılığı'],
-          languages: ['Türkçe'],
-          availability: '1 Hafta İçinde',
-          hourlyRate: 120,
-          dailyRate: 1000,
-          licenseNumber: 'B987654321',
-          licenseExpiry: '2025-08-15',
-          insurance: 'Aktif',
-          vehicleInfo: {
-            brand: 'Volvo',
-            model: 'FH 460',
-            year: 2019,
-            capacity: '26 Ton',
-            features: ['GPS Takip', 'Klima']
-          },
-          workingHours: '6:00 - 22:00',
-          preferredRoutes: ['Ankara-İstanbul', 'Ankara-Konya'],
-          certifications: ['Sürücü Belgesi']
-        },
-        3: {
-          id: 3,
-          name: 'Hasan Kaya',
-          city: 'İzmir',
-          rating: 4.8,
-          reviewCount: 189,
-          experience: 12,
-          vehicleType: 'Çekici',
-          completedJobs: 295,
-          verified: true,
-          phone: '+90 532 555 0789',
-          email: 'hasan.kaya@email.com',
-          bio: 'İzmir ve çevre illerde çekici ile taşımacılık hizmeti veriyorum. Konteyner taşımacılığında deneyimli.',
-          specialties: ['Konteyner Taşımacılığı', 'Çekici Hizmetleri'],
-          languages: ['Türkçe', 'Arapça'],
-          availability: '2 Hafta İçinde',
-          hourlyRate: 140,
-          dailyRate: 1100,
-          licenseNumber: 'C456789123',
-          licenseExpiry: '2027-03-20',
-          insurance: 'Aktif',
-          vehicleInfo: {
-            brand: 'Scania',
-            model: 'R 450',
-            year: 2021,
-            capacity: '44 Ton',
-            features: ['GPS Takip', 'Klima', 'ABS', 'ESP', 'Retarder']
-          },
-          workingHours: '7/24',
-          preferredRoutes: ['İzmir-İstanbul', 'İzmir-Ankara', 'İzmir-Antalya'],
-          certifications: ['Sürücü Belgesi', 'ADR Sertifikası']
-        }
-      };
-
-      const driverData = mockDrivers[params.id];
-      if (driverData) {
-        setDriver(driverData);
-        loadDriverReviews(driverData.id);
-      } else {
-        toast.error('Şoför bulunamadı');
-        router.push('/drivers');
+      if (response.data.success) {
+        const { driver, jobs, reviews } = response.data.data;
+        setDriver(driver);
+        setJobs(jobs);
+        setReviews(reviews);
       }
     } catch (error) {
-      console.error('Şoför verileri yüklenemedi:', error);
-      toast.error('Şoför verileri yüklenirken hata oluştu');
+      console.error('Şoför detayları getirilemedi:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadDriverReviews = async (driverId) => {
-    try {
-      // Mock reviews data
-      const mockReviews = [
-        {
-          id: 1,
-          reviewer: 'Ahmet Şirket',
-          rating: 5,
-          comment: 'Çok profesyonel ve güvenilir bir şoför. İşini zamanında ve kaliteli yapıyor.',
-          date: '2024-01-10',
-          job: 'İstanbul-Ankara Kargo Taşıma'
-        },
-        {
-          id: 2,
-          reviewer: 'Mehmet Lojistik',
-          rating: 5,
-          comment: 'Mükemmel hizmet! Araçları çok temiz ve bakımlı. Kesinlikle tavsiye ederim.',
-          date: '2024-01-08',
-          job: 'İstanbul-İzmir Parsiyel Yük'
-        },
-        {
-          id: 3,
-          reviewer: 'Ali Kargo',
-          rating: 4,
-          comment: 'İyi bir şoför. İletişim kurması kolay ve esnek.',
-          date: '2024-01-05',
-          job: 'İstanbul-Bursa Tam Yük'
-        }
-      ];
-      
-      setReviews(mockReviews);
-    } catch (error) {
-      console.error('Değerlendirmeler yüklenemedi:', error);
-    }
+  const handleFollow = () => {
+    setIsFollowing(!isFollowing);
+  };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    // Toast notification eklenebilir
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Şoför bilgileri yükleniyor...</p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+            <div className="bg-white rounded-2xl p-8 mb-6">
+              <div className="flex items-center space-x-6 mb-8">
+                <div className="w-24 h-24 bg-gray-200 rounded-2xl"></div>
+                <div className="flex-1">
+                  <div className="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -209,11 +97,13 @@ export default function DriverDetailPage() {
 
   if (!driver) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Şoför bulunamadı</h1>
-          <Link href="/drivers" className="text-blue-600 hover:text-blue-700">
-            Şoförler listesine dön
+          <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Şoför Bulunamadı</h2>
+          <p className="text-gray-600 mb-6">Aradığınız şoför mevcut değil.</p>
+          <Link href="/drivers" className="btn-primary">
+            Şoförlere Dön
           </Link>
         </div>
       </div>
@@ -221,236 +111,387 @@ export default function DriverDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Toaster position="top-right" />
-      
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+    <>
+      <Header />
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+          <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center space-x-4">
-              <Link href="/drivers" className="flex items-center text-gray-600 hover:text-blue-600">
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Geri Dön
-              </Link>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-green-700 rounded-lg flex items-center justify-center">
-                  <User className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">{driver.name}</span>
-              </div>
+              <button
+                onClick={() => router.back()}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-600" />
+              </button>
+              <h1 className="text-xl font-bold text-gray-800">{driver.profile?.firstName} {driver.profile?.lastName}</h1>
             </div>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Driver Info */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Driver Card */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-start space-x-4 mb-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <User className="w-10 h-10 text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h1 className="text-2xl font-bold text-gray-900">{driver.name}</h1>
-                    {driver.verified && (
-                      <CheckCircle className="w-6 h-6 text-green-600" />
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-600 mb-3">
-                    <MapPin className="w-4 h-4" />
-                    <span>{driver.city}</span>
-                  </div>
-                  <div className="flex items-center space-x-1 mb-2">
-                    <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                    <span className="font-semibold">{driver.rating}</span>
-                    <span className="text-gray-500">({driver.reviewCount} değerlendirme)</span>
-                  </div>
-                </div>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Driver Profile Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
+          <div className="flex items-start space-x-6 mb-8">
+            {/* Driver Avatar */}
+            <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <User className="w-12 h-12 text-white" />
+            </div>
+            
+            {/* Driver Info */}
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-3">
+                <h2 className="text-2xl font-bold text-gray-800">{driver.profile?.firstName} {driver.profile?.lastName}</h2>
+                {driver.verified && (
+                  <span className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-blue-600" />
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex items-center space-x-2 text-gray-600 mb-4">
+                <MapPin className="w-4 h-4" />
+                <span>{driver.profile?.city}</span>
+                <span>•</span>
+                <Truck className="w-4 h-4" />
+                <span>{driver.driverDetails?.vehicleType}</span>
+                <span>•</span>
+                <span>{driver.driverDetails?.experienceYears} yıl deneyim</span>
               </div>
 
-              <p className="text-gray-600 mb-6">{driver.bio}</p>
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                {driver.profile?.bio}
+              </p>
 
-              {/* Contact Info */}
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-700">{driver.phone}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Mail className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-700">{driver.email}</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Clock className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-700">{driver.availability}</span>
-                </div>
-              </div>
-
-              {/* Driver Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{driver.experience}</div>
-                  <div className="text-sm text-gray-600">Yıl Tecrübe</div>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{driver.completedJobs}</div>
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="text-center p-3 bg-gray-50 rounded-xl">
+                  <div className="text-2xl font-bold text-green-600">{driver.stats?.completedJobs}</div>
                   <div className="text-sm text-gray-600">Tamamlanan İş</div>
                 </div>
+                <div className="text-center p-3 bg-gray-50 rounded-xl">
+                  <div className="text-2xl font-bold text-blue-600">{driver.stats?.onTimeDelivery}%</div>
+                  <div className="text-sm text-gray-600">Zamanında Teslimat</div>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded-xl">
+                  <div className="text-2xl font-bold text-purple-600">{driver.stats?.customerSatisfaction}%</div>
+                  <div className="text-sm text-gray-600">Müşteri Memnuniyeti</div>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded-xl">
+                  <div className="text-2xl font-bold text-orange-600">{driver.stats?.yearsExperience}</div>
+                  <div className="text-sm text-gray-600">Yıl Deneyim</div>
+                </div>
               </div>
 
-              {/* Pricing */}
-              <div className="bg-blue-50 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-gray-900 mb-2">Ücretlendirme</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Saatlik Ücret</span>
-                    <span className="font-medium">{driver.hourlyRate} TL</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Günlük Ücret</span>
-                    <span className="font-medium">{driver.dailyRate} TL</span>
-                  </div>
+              {/* Rating */}
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="flex items-center space-x-1">
+                  <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                  <span className="font-bold text-gray-800">
+                    {typeof driver.rating === 'object' ? driver.rating?.average || '4.5' : driver.rating || '4.5'}
+                  </span>
                 </div>
+                <span className="text-gray-500">
+                  ({typeof driver.rating === 'object' ? driver.rating?.count || 0 : driver.reviewCount || 0} değerlendirme)
+                </span>
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-3">
-                <button className="w-full btn-primary py-3 flex items-center justify-center">
-                  <MessageSquare className="w-5 h-5 mr-2" />
-                  İletişime Geç
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={handleFollow}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                    isFollowing 
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
+                      : 'bg-green-600 text-white hover:bg-green-700'
+                  }`}
+                >
+                  {isFollowing ? 'Takip Ediliyor' : 'Takip Et'}
                 </button>
-                <button className="w-full btn-secondary py-3 flex items-center justify-center">
-                  <Heart className="w-5 h-5 mr-2" />
-                  Favorilere Ekle
+                <button
+                  onClick={handleShare}
+                  className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                >
+                  <Share2 className="w-5 h-5 text-gray-600" />
                 </button>
-              </div>
-            </div>
-
-            {/* Vehicle Info */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Araç Bilgileri</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Marka/Model</span>
-                  <span className="font-medium">{driver.vehicleInfo.brand} {driver.vehicleInfo.model}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Yıl</span>
-                  <span className="font-medium">{driver.vehicleInfo.year}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Kapasite</span>
-                  <span className="font-medium">{driver.vehicleInfo.capacity}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Araç Türü</span>
-                  <span className="font-medium">{driver.vehicleType}</span>
-                </div>
-              </div>
-
-              {/* Vehicle Features */}
-              <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Özellikler</h4>
-                <div className="flex flex-wrap gap-2">
-                  {driver.vehicleInfo.features.map((feature, index) => (
-                    <span key={index} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                      {feature}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Certifications */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Sertifikalar</h3>
-              <div className="space-y-2">
-                {driver.certifications.map((cert, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <Shield className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-gray-700">{cert}</span>
-                  </div>
-                ))}
+                <button className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
+                  <MessageCircle className="w-5 h-5 text-gray-600" />
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Reviews Section */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900">Değerlendirmeler ({reviews.length})</h2>
-              </div>
-
-              {/* Reviews List */}
-              <div className="p-6">
-                {reviews.length > 0 ? (
-                  <div className="space-y-6">
-                    {reviews.map((review) => (
-                      <div key={review.id} className="border-b border-gray-200 pb-6 last:border-b-0">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h4 className="font-semibold text-gray-900">{review.reviewer}</h4>
-                            <p className="text-sm text-gray-500">{review.job}</p>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`w-4 h-4 ${
-                                  i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <p className="text-gray-700 mb-2">{review.comment}</p>
-                        <p className="text-sm text-gray-500">{new Date(review.date).toLocaleDateString('tr-TR')}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Star className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Henüz değerlendirme bulunmuyor</p>
-                  </div>
-                )}
+          {/* Contact Info */}
+          <div className="grid md:grid-cols-2 gap-6 pt-6 border-t border-gray-200">
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-4">İletişim Bilgileri</h3>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Phone className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700">{driver.profile?.phone}</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Mail className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700">{driver.email}</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Clock className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700">{driver.driverDetails?.workingHours}</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700">{driver.driverDetails?.availability}</span>
+                </div>
               </div>
             </div>
-
-            {/* Specialties */}
-            <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Uzmanlık Alanları</h3>
+            
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-4">Uzmanlık Alanları</h3>
               <div className="flex flex-wrap gap-2">
-                {driver.specialties.map((specialty, index) => (
-                  <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                {driver.driverDetails?.specialties?.map((specialty, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium"
+                  >
                     {specialty}
                   </span>
                 ))}
               </div>
             </div>
-
-            {/* Preferred Routes */}
-            <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Tercih Edilen Güzergahlar</h3>
-              <div className="flex flex-wrap gap-2">
-                {driver.preferredRoutes.map((route, index) => (
-                  <span key={index} className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
-                    {route}
-                  </span>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
-      </main>
-    </div>
+
+        {/* Tabs */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveTab('about')}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'about'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Hakkında
+              </button>
+              <button
+                onClick={() => setActiveTab('jobs')}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'jobs'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Tamamlanan İşler ({jobs.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('reviews')}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'reviews'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Değerlendirmeler ({reviews.length})
+              </button>
+            </nav>
+          </div>
+
+          <div className="p-6">
+            {/* About Tab */}
+            {activeTab === 'about' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-gray-800 mb-4">Şoför Hakkında</h3>
+                  <p className="text-gray-700 leading-relaxed mb-6">
+                    {driver.profile?.bio}
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">Araç Bilgileri</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Araç Türü:</span>
+                        <span className="font-medium">{driver.driverDetails?.vehicleType}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Kapasite:</span>
+                        <span className="font-medium">{driver.driverDetails?.vehicleCapacity}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Model:</span>
+                        <span className="font-medium">{driver.driverDetails?.vehicleModel}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Yıl:</span>
+                        <span className="font-medium">{driver.driverDetails?.vehicleYear}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">Sertifikalar</h4>
+                    <div className="space-y-2">
+                      {driver.driverDetails?.certifications?.map((cert, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <Award className="w-4 h-4 text-green-600" />
+                          <span className="text-sm text-gray-700">{cert}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">Diller</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {driver.driverDetails?.languages?.map((language, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
+                        >
+                          {language}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-3">Özellikler</h4>
+                    <div className="space-y-2">
+                      {driver.driverDetails?.gpsTracking && (
+                        <div className="flex items-center space-x-2">
+                          <Shield className="w-4 h-4 text-green-600" />
+                          <span className="text-sm text-gray-700">GPS Takip</span>
+                        </div>
+                      )}
+                      {driver.driverDetails?.temperatureControl && (
+                        <div className="flex items-center space-x-2">
+                          <Shield className="w-4 h-4 text-green-600" />
+                          <span className="text-sm text-gray-700">Sıcaklık Kontrolü</span>
+                        </div>
+                      )}
+                      <div className="flex items-center space-x-2">
+                        <Shield className="w-4 h-4 text-green-600" />
+                        <span className="text-sm text-gray-700">{driver.driverDetails?.insurance}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Jobs Tab */}
+            {activeTab === 'jobs' && (
+              <div className="space-y-4">
+                {jobs.length > 0 ? (
+                  jobs.map((job) => (
+                    <div key={job._id} className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="font-bold text-gray-800 text-lg mb-2">{job.title}</h3>
+                          <p className="text-gray-600 mb-3">{job.description}</p>
+                          <div className="flex items-center space-x-4 text-sm text-gray-500">
+                            <div className="flex items-center space-x-1">
+                              <MapPin className="w-4 h-4" />
+                              <span>{job.route?.from?.city} → {job.route?.to?.city}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Truck className="w-4 h-4" />
+                              <span>{job.loadDetails?.type}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-4 h-4" />
+                              <span>{new Date(job.completedAt).toLocaleDateString('tr-TR')}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-green-600 mb-1">
+                            {job.payment?.amount?.toLocaleString()} {job.payment?.currency}
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <span className="text-sm text-gray-500">{job.rating}/5</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                          Tamamlandı
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          {new Date(job.completedAt).toLocaleDateString('tr-TR')}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">Henüz Tamamlanan İş Yok</h3>
+                    <p className="text-gray-500">Bu şoför henüz iş tamamlamamış.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Reviews Tab */}
+            {activeTab === 'reviews' && (
+              <div className="space-y-6">
+                {reviews.length > 0 ? (
+                  reviews.map((review) => (
+                    <div key={review._id} className="border border-gray-200 rounded-xl p-6">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">
+                            {review.reviewer?.name?.charAt(0)}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <h4 className="font-semibold text-gray-800">{review.reviewer?.name}</h4>
+                            <span className="text-sm text-gray-500">({review.reviewer?.company})</span>
+                            <div className="flex items-center space-x-1">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-gray-700 mb-3">{review.comment}</p>
+                          <div className="text-sm text-gray-500 mb-2">
+                            <span className="font-medium">İş:</span> {review.jobTitle}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {new Date(review.createdAt).toLocaleDateString('tr-TR')}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">Henüz Değerlendirme Yok</h3>
+                    <p className="text-gray-500">Bu şoför için henüz değerlendirme yapılmamış.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      </div>
+      <Footer />
+    </>
   );
 }

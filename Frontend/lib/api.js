@@ -68,6 +68,7 @@ export const userAPI = {
   getCompanies: () => api.get('/users/companies'),
   getCompanyDetails: (id) => api.get(`/users/companies/${id}`),
   getDrivers: () => api.get('/users/drivers'),
+  getDriverDetails: (id) => api.get(`/users/drivers/${id}`),
 };
 
 export const reviewAPI = {

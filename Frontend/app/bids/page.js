@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Footer from '../../components/Footer';
 import { 
   Truck, 
   ArrowLeft, 
@@ -240,6 +241,7 @@ export default function BidsPage() {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

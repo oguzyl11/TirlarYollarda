@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Search, MapPin, Truck, Package, Star, TrendingUp, Users, Building2, ChevronRight, Clock, DollarSign, ChevronDown } from 'lucide-react';
 import { jobAPI, userAPI } from '../lib/api';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 export default function Home() {
   const [featuredJobs, setFeaturedJobs] = useState([]);
@@ -86,7 +87,7 @@ export default function Home() {
               Nakliyat Sektörünün <span className="text-blue-600">Buluşma Noktası</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Binlerce şirket ve şoför LoadING'de işbirliği yapıyor
+              Binlerce şirket ve şoför LoadING&apos;de işbirliği yapıyor
             </p>
           </div>
 
@@ -292,49 +293,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Truck className="w-6 h-6 text-blue-600" />
-                <span className="font-bold text-lg">LoadING</span>
-              </div>
-              <p className="text-gray-400 text-sm">
-                Nakliyat sektörünün dijital buluşma noktası
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Platform</h4>
-              <div className="space-y-2 text-sm text-gray-400">
-                <div>İş İlanları</div>
-                <div>Şirketler</div>
-                <div>Şoförler</div>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Destek</h4>
-              <div className="space-y-2 text-sm text-gray-400">
-                <div>Yardım Merkezi</div>
-                <div>İletişim</div>
-                <div>SSS</div>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Yasal</h4>
-              <div className="space-y-2 text-sm text-gray-400">
-                <div>Gizlilik</div>
-                <div>Kullanım Koşulları</div>
-                <div>KVKK</div>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
-            © 2025 LoadING. Tüm hakları saklıdır.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import Footer from '../../../components/Footer';
 import { 
   Truck, 
   ArrowLeft, 
@@ -535,6 +536,7 @@ export default function CreateJobPage() {
           </div>
         </form>
       </main>
+      <Footer />
     </div>
   );
 }

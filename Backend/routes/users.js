@@ -312,6 +312,161 @@ router.get('/companies/:id', async (req, res) => {
     }
 });
 
+// @route   GET /api/users/drivers/:id
+// @desc    Get driver details by ID
+// @access  Public
+router.get('/drivers/:id', async (req, res) => {
+    try {
+        console.log('Get driver details request for ID:', req.params.id);
+        
+        // Mock driver details data for development (MongoDB not connected)
+        const mockDriverDetails = {
+            _id: req.params.id,
+            email: 'mehmet.kaya@email.com',
+            userType: 'driver',
+            verified: true,
+            rating: { average: 4.9, count: 89 },
+            reviewCount: 89,
+            completedJobs: 156,
+            profile: {
+                firstName: 'Mehmet',
+                lastName: 'Kaya',
+                phone: '05551234567',
+                city: 'İstanbul',
+                bio: '15 yıllık deneyimli şoför. Güvenilir ve profesyonel hizmet sunuyorum. Modern araçlarım ve deneyimimle müşteri memnuniyetini ön planda tutuyorum.',
+                avatar: '/logo.png'
+            },
+            driverDetails: {
+                licenseNumber: 'A123456789',
+                licenseType: 'B+E',
+                experienceYears: 15,
+                vehicleType: 'Tır',
+                vehicleCapacity: '40 Ton',
+                vehicleModel: 'Mercedes Actros',
+                vehicleYear: 2020,
+                specialties: ['Konteyner Taşımacılığı', 'Parsiyel Yük', 'Frigo Taşımacılığı', 'Ağır Yük'],
+                languages: ['Türkçe', 'İngilizce', 'Almanca'],
+                availability: 'Hafta içi',
+                workingHours: '08:00-20:00',
+                certifications: ['ADR Sertifikası', 'Frigo Sertifikası', 'Güvenlik Sertifikası'],
+                insurance: 'Tam Kasko + Trafik Sigortası',
+                gpsTracking: true,
+                temperatureControl: true
+            },
+            stats: {
+                totalJobs: 156,
+                completedJobs: 156,
+                rating: 4.9,
+                yearsExperience: 15,
+                onTimeDelivery: 98,
+                customerSatisfaction: 96
+            },
+            createdAt: '2022-01-15T10:00:00Z',
+            updatedAt: '2024-01-15T10:00:00Z'
+        };
+
+        // Mock completed jobs for this driver
+        const mockJobs = [
+            {
+                _id: 'completed_job_1',
+                title: 'İstanbul-Ankara Konteyner Taşımacılığı',
+                description: 'Başarıyla tamamlanan konteyner taşımacılığı işi.',
+                route: { from: { city: 'İstanbul' }, to: { city: 'Ankara' } },
+                loadDetails: { type: 'Konteyner', weight: '20' },
+                payment: { amount: 3500, currency: 'TL' },
+                completedAt: '2024-01-10T15:30:00Z',
+                rating: 5,
+                status: 'completed',
+                driverId: req.params.id
+            },
+            {
+                _id: 'completed_job_2',
+                title: 'Ankara-İzmir Parsiyel Yük',
+                description: 'Parsiyel yük taşıma işi başarıyla tamamlandı.',
+                route: { from: { city: 'Ankara' }, to: { city: 'İzmir' } },
+                loadDetails: { type: 'Parsiyel', weight: '8' },
+                payment: { amount: 2200, currency: 'TL' },
+                completedAt: '2024-01-08T12:15:00Z',
+                rating: 5,
+                status: 'completed',
+                driverId: req.params.id
+            },
+            {
+                _id: 'completed_job_3',
+                title: 'İzmir-Bursa Frigo Taşımacılığı',
+                description: 'Frigo ürünleri güvenli şekilde teslim edildi.',
+                route: { from: { city: 'İzmir' }, to: { city: 'Bursa' } },
+                loadDetails: { type: 'Frigo', weight: '15' },
+                payment: { amount: 2800, currency: 'TL' },
+                completedAt: '2024-01-05T18:45:00Z',
+                rating: 4,
+                status: 'completed',
+                driverId: req.params.id
+            }
+        ];
+
+        // Mock reviews for this driver
+        const mockReviews = [
+            {
+                _id: 'review_1',
+                rating: 5,
+                comment: 'Çok profesyonel ve güvenilir bir şoför. Yükümü zamanında ve güvenli bir şekilde teslim etti. Kesinlikle tavsiye ederim.',
+                reviewer: {
+                    name: 'Ahmet Yılmaz',
+                    company: 'Logistikas Lojistik',
+                    avatar: '/logo.png'
+                },
+                jobTitle: 'İstanbul-Ankara Konteyner Taşımacılığı',
+                createdAt: '2024-01-10T16:00:00Z',
+                driverId: req.params.id
+            },
+            {
+                _id: 'review_2',
+                rating: 5,
+                comment: 'İletişimi çok iyi, araçları modern ve temiz. Fiyatları da makul. Tekrar çalışmak isterim.',
+                reviewer: {
+                    name: 'Fatma Demir',
+                    company: 'Hızlı Nakliyat',
+                    avatar: '/logo.png'
+                },
+                jobTitle: 'Ankara-İzmir Parsiyel Yük',
+                createdAt: '2024-01-08T14:30:00Z',
+                driverId: req.params.id
+            },
+            {
+                _id: 'review_3',
+                rating: 4,
+                comment: 'Güvenilir şoför, zamanında teslim etti. Küçük bir gecikme oldu ama iletişimi iyiydi.',
+                reviewer: {
+                    name: 'Mehmet Özkan',
+                    company: 'Mega Ulaştırma',
+                    avatar: '/logo.png'
+                },
+                jobTitle: 'İzmir-Bursa Frigo Taşımacılığı',
+                createdAt: '2024-01-05T20:15:00Z',
+                driverId: req.params.id
+            }
+        ];
+
+        console.log('Mock driver details returned for ID:', req.params.id);
+
+        res.json({
+            success: true,
+            data: {
+                driver: mockDriverDetails,
+                jobs: mockJobs,
+                reviews: mockReviews
+            }
+        });
+    } catch (error) {
+        console.error('Get driver details error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Şoför detayları getirilirken hata oluştu'
+        });
+    }
+});
+
 // @route   GET /api/users/drivers
 // @desc    Get all drivers
 // @access  Public

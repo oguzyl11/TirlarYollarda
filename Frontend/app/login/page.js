@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import Footer from '../../components/Footer';
 import { Mail, Lock, Eye, EyeOff, Truck, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import toast, { Toaster } from 'react-hot-toast';
@@ -201,6 +202,7 @@ export default function LoginPage() {
           </Link>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import Footer from '../../components/Footer';
 import { Mail, Lock, Eye, EyeOff, Truck, User, Phone, Building2, AlertCircle, CheckCircle, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import toast, { Toaster } from 'react-hot-toast';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { register, loading } = useAuthStore();
@@ -601,6 +602,19 @@ export default function RegisterPage() {
           </Link>
         </div>
       </div>
+      <Footer />
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-opacity-50"></div>
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   );
 }

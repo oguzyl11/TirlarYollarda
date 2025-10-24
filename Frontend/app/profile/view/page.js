@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Footer from '../../../components/Footer';
 import { 
   User, 
   Mail, 
@@ -57,7 +58,7 @@ export default function ProfileViewPage() {
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span>Dashboard'a Dön</span>
+              <span>Dashboard&apos;a Dön</span>
             </Link>
 
             {/* Edit Button */}
@@ -291,6 +292,7 @@ export default function ProfileViewPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import Footer from '../../../components/Footer';
 import { 
   Truck, 
   ArrowLeft, 
@@ -381,6 +382,7 @@ export default function JobDetailPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

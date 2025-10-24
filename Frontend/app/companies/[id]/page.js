@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import Footer from '../../../components/Footer';
 import { userAPI } from '../../../lib/api';
 import { 
   ArrowLeft, 
@@ -452,6 +453,7 @@ export default function CompanyProfile() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

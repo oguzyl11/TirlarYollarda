@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Footer from '../../components/Footer';
 import { 
   MessageCircle, 
   Phone, 
@@ -431,67 +432,7 @@ export default function SupportPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 relative">
-                  <Image
-                    src="/logo.png"
-                    alt="LoadING Logo"
-                    width={32}
-                    height={32}
-                    className="rounded-lg"
-                    priority
-                  />
-                </div>
-                <span className="font-bold text-lg">LoadING</span>
-              </div>
-              <p className="text-gray-400 text-sm">
-                Nakliyat sektörünün dijital buluşma noktası
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Platform</h4>
-              <div className="space-y-2 text-sm text-gray-400">
-                <Link href="/jobs" className="block hover:text-white">İş İlanları</Link>
-                <Link href="/companies" className="block hover:text-white">Şirketler</Link>
-                <Link href="/drivers" className="block hover:text-white">Şoförler</Link>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Destek</h4>
-              <div className="space-y-2 text-sm text-gray-400">
-                <Link href="/support" className="block hover:text-white">Yardım Merkezi</Link>
-                <Link href="/about" className="block hover:text-white">Hakkımızda</Link>
-                <Link href="/contact" className="block hover:text-white">İletişim</Link>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">İletişim</h4>
-              <div className="space-y-2 text-sm text-gray-400">
-                <div className="flex items-center">
-                  <Mail className="w-4 h-4 mr-2" />
-                  support@tirlaryollarda.com
-                </div>
-                <div className="flex items-center">
-                  <Phone className="w-4 h-4 mr-2" />
-                  +90 (212) 555 0123
-                </div>
-                <div className="flex items-center">
-                  <Clock className="w-4 h-4 mr-2" />
-                  7/24 Destek
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
-            © 2025 TırlarYollarda. Tüm hakları saklıdır.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

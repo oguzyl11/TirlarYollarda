@@ -10,17 +10,17 @@ export default function Footer() {
           {/* Company Info */}
           <div>
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-12 h-12 relative">
+              <div className="w-16 h-16 relative">
                 <Image
                   src="/logo.png"
                   alt="LoadING Logo"
-                  width={48}
-                  height={48}
+                  width={64}
+                  height={64}
                   className="rounded-lg"
                   priority
                 />
               </div>
-              <span className="text-xl font-bold text-white">LoadING</span>
+              <span className="text-2xl font-bold text-white">LoadING</span>
             </div>
             <p className="text-sm text-gray-400 mb-4">
               Nakliyat sektörünün dijital buluşma noktası. Güvenilir, hızlı ve kolay.
@@ -67,14 +67,14 @@ export default function Footer() {
               <Link href="/support" className="block hover:text-blue-400 transition">
                 Yardım Merkezi
               </Link>
-              <Link href="/faq" className="block hover:text-blue-400 transition">
-                SSS
+              <Link href="/about" className="block hover:text-blue-400 transition">
+                Hakkımızda
               </Link>
-              <Link href="/contact" className="block hover:text-blue-400 transition">
+              <Link href="/support" className="block hover:text-blue-400 transition">
                 İletişim
               </Link>
-              <Link href="/blog" className="block hover:text-blue-400 transition">
-                Blog
+              <Link href="/jobs" className="block hover:text-blue-400 transition">
+                İş İlanları
               </Link>
             </div>
           </div>
@@ -85,11 +85,11 @@ export default function Footer() {
             <div className="space-y-3 text-sm">
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-blue-400" />
-                <span>info@tirlaryollarda.com</span>
+                <span>info@loading.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-blue-400" />
-                <span>0850 XXX XX XX</span>
+                <span>+90 (212) 555 0123</span>
               </div>
               <div className="flex items-start space-x-2">
                 <MapPin className="w-4 h-4 text-blue-400 mt-0.5" />
@@ -103,17 +103,17 @@ export default function Footer() {
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-gray-500">
-              © 2025 TırlarYollarda. Tüm hakları saklıdır.
+              © 2025 LoadING. Tüm hakları saklıdır.
             </div>
             <div className="flex space-x-6 text-sm">
-              <Link href="/privacy" className="hover:text-blue-400 transition">
-                Gizlilik Politikası
+              <Link href="/about" className="hover:text-blue-400 transition">
+                Hakkımızda
               </Link>
-              <Link href="/terms" className="hover:text-blue-400 transition">
-                Kullanım Koşulları
+              <Link href="/support" className="hover:text-blue-400 transition">
+                Destek
               </Link>
-              <Link href="/kvkk" className="hover:text-blue-400 transition">
-                KVKK
+              <Link href="/jobs" className="hover:text-blue-400 transition">
+                İş İlanları
               </Link>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import Footer from '../../components/Footer';
 import { 
   Truck, 
   Users, 
@@ -70,7 +71,7 @@ export default function AboutPage() {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-800 mb-6">Misyonumuz</h2>
             <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              Türkiye'nin nakliyat sektöründe dijital dönüşümü hızlandırarak, şirketler ve şoförler arasında güvenilir köprüler kuruyoruz.
+              Türkiye&apos;nin nakliyat sektöründe dijital dönüşümü hızlandırarak, şirketler ve şoförler arasında güvenilir köprüler kuruyoruz.
             </p>
           </div>
           
@@ -91,7 +92,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-2xl font-semibold text-gray-800 mb-4">Vizyonumuz</h3>
               <p className="text-gray-600 leading-relaxed">
-                Türkiye'nin en büyük nakliyat ağı olarak, sektörün dijital geleceğini şekillendirmek.
+                Türkiye&apos;nin en büyük nakliyat ağı olarak, sektörün dijital geleceğini şekillendirmek.
               </p>
             </div>
             
@@ -287,67 +288,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 relative">
-                  <Image
-                    src="/logo.png"
-                    alt="LoadING Logo"
-                    width={40}
-                    height={40}
-                    className="rounded-lg"
-                    priority
-                  />
-                </div>
-                <span className="font-bold text-lg">LoadING</span>
-              </div>
-              <p className="text-gray-400 text-sm">
-                Nakliyat sektörünün dijital buluşma noktası
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Platform</h4>
-              <div className="space-y-2 text-sm text-gray-400">
-                <Link href="/jobs" className="block hover:text-white transition-colors">İş İlanları</Link>
-                <Link href="/companies" className="block hover:text-white transition-colors">Şirketler</Link>
-                <Link href="/drivers" className="block hover:text-white transition-colors">Şoförler</Link>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Destek</h4>
-              <div className="space-y-2 text-sm text-gray-400">
-                <Link href="/support" className="block hover:text-white transition-colors">Yardım Merkezi</Link>
-                <Link href="/about" className="block hover:text-white transition-colors">Hakkımızda</Link>
-                <Link href="/contact" className="block hover:text-white transition-colors">İletişim</Link>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">İletişim</h4>
-              <div className="space-y-2 text-sm text-gray-400">
-                <div className="flex items-center">
-                  <Mail className="w-4 h-4 mr-2" />
-                  info@loading.com
-                </div>
-                <div className="flex items-center">
-                  <Phone className="w-4 h-4 mr-2" />
-                  +90 (212) 555 0123
-                </div>
-                <div className="flex items-center">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  İstanbul, Türkiye
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
-            © 2025 LoadING. Tüm hakları saklıdır.
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
