@@ -77,6 +77,10 @@ export default function MyJobsPage() {
     }
   };
 
+  const handleEditJob = (jobId) => {
+    router.push(`/jobs/edit/${jobId}`);
+  };
+
   if (!initialized || !isAuthenticated || user?.userType !== 'employer') {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -171,25 +175,25 @@ export default function MyJobsPage() {
                     <p className="text-gray-600 mb-4">{job.description}</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                      <div className="flex items-center text-sm text-gray-500">
+                      <div className="flex items-center text-sm text-gray-700">
                         <MapPin className="w-4 h-4 mr-2" />
                         {job.route?.from?.city} → {job.route?.to?.city}
                       </div>
-                      <div className="flex items-center text-sm text-gray-500">
+                      <div className="flex items-center text-sm text-gray-700">
                         <Package className="w-4 h-4 mr-2" />
                         {job.loadDetails?.type || 'Belirtilmemiş'}
                       </div>
-                      <div className="flex items-center text-sm text-gray-500">
+                      <div className="flex items-center text-sm text-gray-700">
                         <DollarSign className="w-4 h-4 mr-2" />
                         {job.payment?.amount} {job.payment?.currency}
                       </div>
-                      <div className="flex items-center text-sm text-gray-500">
+                      <div className="flex items-center text-sm text-gray-700">
                         <Calendar className="w-4 h-4 mr-2" />
                         {job.schedule?.startDate ? new Date(job.schedule.startDate).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-6 text-sm text-gray-500">
+                    <div className="flex items-center space-x-6 text-sm text-gray-600">
                       <div className="flex items-center">
                         <Eye className="w-4 h-4 mr-1" />
                         {job.views || 0} Görüntüleme
@@ -212,6 +216,12 @@ export default function MyJobsPage() {
                     >
                       Görüntüle
                     </Link>
+                    <button
+                      onClick={() => handleEditJob(job._id)}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
                     <button
                       onClick={() => handleDeleteJob(job._id)}
                       className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"

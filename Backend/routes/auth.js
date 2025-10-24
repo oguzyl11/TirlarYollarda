@@ -35,28 +35,48 @@ router.post('/register', [
 
         const { email, password, userType, profile, driverDetails, employerDetails } = req.body;
 
-        // Mock register for development (MongoDB not connected)
-        const mockUser = {
-            id: 'mock-user-id',
-            email: email,
-            userType: userType,
-            profile: profile
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bu email adresi zaten kullanılıyor'
+            });
+        }
+
+        // Create new user
+        const userData = {
+            email,
+            password,
+            userType,
+            profile,
+            ...(userType === 'driver' && driverDetails && { driverDetails }),
+            ...(userType === 'employer' && employerDetails && { employerDetails })
         };
 
+        const user = new User(userData);
+        await user.save();
+
         // Generate token
-        const token = generateToken(mockUser.id);
+        const token = generateToken(user._id);
 
         res.status(201).json({
             success: true,
-            message: 'Kayit basarili',
+            message: 'Kayıt başarılı',
             token,
-            user: mockUser
+            user: {
+                id: user._id,
+                email: user.email,
+                userType: user.userType,
+                profile: user.profile,
+                rating: user.rating
+            }
         });
     } catch (error) {
         console.error('Register error:', error);
         res.status(500).json({
             success: false,
-            message: 'Kayit sirasinda hata olustu'
+            message: 'Kayıt sırasında hata oluştu'
         });
     }
 });
@@ -79,33 +99,56 @@ router.post('/login', [
 
         const { email, password } = req.body;
 
-        // Mock login for development (MongoDB not connected)
-        const mockUser = {
-            id: 'mock-user-id',
-            email: email,
-            userType: 'employer',
-            profile: {
-                firstName: 'Test',
-                lastName: 'User',
-                phone: '05551234567'
-            },
-            rating: 4.5
-        };
+        // Find user by email
+        const user = await User.findOne({ email }).select('+password');
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Email veya şifre hatalı'
+            });
+        }
+
+        // Check if user is active
+        if (!user.active) {
+            return res.status(401).json({
+                success: false,
+                message: 'Hesabınız deaktif durumda'
+            });
+        }
+
+        // Check password
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: 'Email veya şifre hatalı'
+            });
+        }
+
+        // Update last login
+        user.lastLogin = new Date();
+        await user.save();
 
         // Generate token
-        const token = generateToken(mockUser.id);
+        const token = generateToken(user._id);
 
         res.json({
             success: true,
-            message: 'Giris basarili',
+            message: 'Giriş başarılı',
             token,
-            user: mockUser
+            user: {
+                id: user._id,
+                email: user.email,
+                userType: user.userType,
+                profile: user.profile,
+                rating: user.rating
+            }
         });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({
             success: false,
-            message: 'Giris sirasinda hata olustu'
+            message: 'Giriş sırasında hata oluştu'
         });
     }
 });
@@ -119,34 +162,38 @@ router.get('/me', async (req, res) => {
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: 'Token bulunamadi'
+                message: 'Token bulunamadı'
             });
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
         
-        // Mock user for development
-        const mockUser = {
-            id: decoded.userId,
-            email: 'test@example.com',
-            userType: 'employer',
-            profile: {
-                firstName: 'Test',
-                lastName: 'User',
-                phone: '05551234567'
-            },
-            rating: 4.5
-        };
+        // Find user in database
+        const user = await User.findById(decoded.userId);
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+        }
 
         res.json({
             success: true,
-            user: mockUser
+            user: {
+                id: user._id,
+                email: user.email,
+                userType: user.userType,
+                profile: user.profile,
+                rating: user.rating,
+                verified: user.verified,
+                createdAt: user.createdAt
+            }
         });
     } catch (error) {
         console.error('Get me error:', error);
         res.status(401).json({
             success: false,
-            message: 'Gecersiz token'
+            message: 'Geçersiz token'
         });
     }
 });

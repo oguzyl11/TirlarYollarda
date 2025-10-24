@@ -93,6 +93,25 @@ export default function JobDetailPage() {
     }
   };
 
+  const handleEditJob = () => {
+    router.push(`/jobs/edit/${params.id}`);
+  };
+
+  const handleCancelJob = async () => {
+    if (!confirm('Bu iş ilanını iptal etmek istediğinizden emin misiniz?')) {
+      return;
+    }
+
+    try {
+      await jobAPI.deleteJob(params.id);
+      toast.success('İş ilanı başarıyla iptal edildi');
+      router.push('/jobs/my');
+    } catch (error) {
+      console.error('İş iptal etme hatası:', error);
+      toast.error('İş iptal edilirken hata oluştu');
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -178,24 +197,24 @@ export default function JobDetailPage() {
                 <div className="flex items-center space-x-3">
                   <MapPin className="w-5 h-5 text-blue-600" />
                   <div>
-                    <p className="text-sm text-gray-500">Güzergah</p>
-                    <p className="font-medium">{job.route?.from?.city} → {job.route?.to?.city}</p>
+                    <p className="text-sm text-gray-700">Güzergah</p>
+                    <p className="font-medium text-gray-900">{job.route?.from?.city} → {job.route?.to?.city}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-3">
                   <DollarSign className="w-5 h-5 text-green-600" />
                   <div>
-                    <p className="text-sm text-gray-500">Ücret</p>
-                    <p className="font-medium">{job.payment?.amount} {job.payment?.currency}</p>
+                    <p className="text-sm text-gray-700">Ücret</p>
+                    <p className="font-medium text-gray-900">{job.payment?.amount} {job.payment?.currency}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-3">
                   <Calendar className="w-5 h-5 text-purple-600" />
                   <div>
-                    <p className="text-sm text-gray-500">Başlangıç</p>
-                    <p className="font-medium">
+                    <p className="text-sm text-gray-700">Başlangıç</p>
+                    <p className="font-medium text-gray-900">
                       {job.schedule?.startDate ? new Date(job.schedule.startDate).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}
                     </p>
                   </div>
@@ -204,8 +223,8 @@ export default function JobDetailPage() {
                 <div className="flex items-center space-x-3">
                   <Package className="w-5 h-5 text-orange-600" />
                   <div>
-                    <p className="text-sm text-gray-500">Yük Türü</p>
-                    <p className="font-medium">{job.loadDetails?.type || 'Belirtilmemiş'}</p>
+                    <p className="text-sm text-gray-700">Yük Türü</p>
+                    <p className="font-medium text-gray-900">{job.loadDetails?.type || 'Belirtilmemiş'}</p>
                   </div>
                 </div>
               </div>
@@ -217,12 +236,12 @@ export default function JobDetailPage() {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Yük Detayları</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Ağırlık</p>
-                    <p className="font-medium">{job.loadDetails.weight || 'Belirtilmemiş'}</p>
+                    <p className="text-sm text-gray-700">Ağırlık</p>
+                    <p className="font-medium text-gray-900">{job.loadDetails.weight || 'Belirtilmemiş'}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Boyutlar</p>
-                    <p className="font-medium">
+                    <p className="text-sm text-gray-700">Boyutlar</p>
+                    <p className="font-medium text-gray-900">
                       {job.loadDetails.dimensions ? 
                         `${job.loadDetails.dimensions.length}x${job.loadDetails.dimensions.width}x${job.loadDetails.dimensions.height}` : 
                         'Belirtilmemiş'
@@ -232,8 +251,8 @@ export default function JobDetailPage() {
                 </div>
                 {job.loadDetails.description && (
                   <div className="mt-4">
-                    <p className="text-sm text-gray-500">Açıklama</p>
-                    <p className="font-medium">{job.loadDetails.description}</p>
+                    <p className="text-sm text-gray-700">Açıklama</p>
+                    <p className="font-medium text-gray-900">{job.loadDetails.description}</p>
                   </div>
                 )}
               </div>
@@ -250,12 +269,12 @@ export default function JobDetailPage() {
                   <p className="font-medium text-gray-900">
                     {job.postedBy?.profile?.firstName} {job.postedBy?.profile?.lastName}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-700">
                     {job.postedBy?.profile?.city || 'Şehir belirtilmemiş'}
                   </p>
                   <div className="flex items-center space-x-1 mt-1">
                     <Star className="w-4 h-4 text-yellow-500" />
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-800">
                       {job.postedBy?.rating || 'Değerlendirme yok'}
                     </span>
                   </div>
@@ -332,10 +351,16 @@ export default function JobDetailPage() {
                 </div>
               ) : isOwner ? (
                 <div className="space-y-3">
-                  <button className="w-full btn-secondary py-3">
+                  <button 
+                    onClick={handleEditJob}
+                    className="w-full btn-secondary py-3"
+                  >
                     İşi Düzenle
                   </button>
-                  <button className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors">
+                  <button 
+                    onClick={handleCancelJob}
+                    className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors"
+                  >
                     İşi İptal Et
                   </button>
                 </div>
@@ -360,7 +385,7 @@ export default function JobDetailPage() {
                           {bid.proposedAmount} TL
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{bid.message}</p>
+                      <p className="text-sm text-gray-800 mb-2">{bid.message}</p>
                       <div className="flex space-x-2">
                         <button className="flex-1 bg-green-600 text-white py-1 px-3 rounded text-sm hover:bg-green-700 transition-colors">
                           Kabul Et

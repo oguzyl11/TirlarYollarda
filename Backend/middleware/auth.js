@@ -16,11 +16,27 @@ const auth = async (req, res, next) => {
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
         
-        // Mock user for development (MongoDB not connected)
+        // Find user in database
+        const user = await User.findById(decoded.userId);
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+        }
+
+        // Check if user is active
+        if (!user.active) {
+            return res.status(401).json({
+                success: false,
+                message: 'Hesabınız deaktif durumda'
+            });
+        }
+
         req.user = {
-            userId: decoded.userId || 'mock-user-id',
-            email: decoded.email || 'test@example.com',
-            userType: decoded.userType || 'employer'
+            userId: user._id,
+            email: user.email,
+            userType: user.userType
         };
 
         console.log('Auth middleware: User authenticated:', req.user);

@@ -48,6 +48,7 @@ export const authAPI = {
 export const jobAPI = {
   getJobs: (params) => api.get('/jobs', { params }),
   getJob: (id) => api.get(`/jobs/${id}`),
+  getJobDetails: (id) => api.get(`/jobs/${id}`),
   createJob: (data) => api.post('/jobs', data),
   updateJob: (id, data) => api.put(`/jobs/${id}`, data),
   deleteJob: (id) => api.delete(`/jobs/${id}`),

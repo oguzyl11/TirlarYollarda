@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { 
   Truck, 
@@ -168,6 +169,25 @@ export default function DashboardPage() {
                 />
               </div>
             </Link>
+
+            {/* Navigation */}
+            <nav className="hidden md:flex space-x-8">
+              <Link href="/jobs" className="text-gray-700 hover:text-blue-600 font-medium">
+                İş İlanları
+              </Link>
+              <Link href="/companies" className="text-gray-700 hover:text-blue-600 font-medium">
+                Şirketler
+              </Link>
+              <Link href="/drivers" className="text-gray-700 hover:text-blue-600 font-medium">
+                Şoförler
+              </Link>
+              <Link href="/about" className="text-gray-700 hover:text-blue-600 font-medium">
+                Hakkımızda
+              </Link>
+              <Link href="/support" className="text-gray-700 hover:text-blue-600 font-medium">
+                Destek
+              </Link>
+            </nav>
 
             {/* User Menu */}
             <div className="flex items-center space-x-4">

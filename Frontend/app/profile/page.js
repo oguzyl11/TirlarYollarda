@@ -6,11 +6,6 @@ import Link from 'next/link';
 import Footer from '../../components/Footer';
 import { 
   User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Truck, 
-  Building2, 
   Save, 
   ArrowLeft,
   Camera,
@@ -345,20 +340,15 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Telefon</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Phone className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                          type="tel"
-                          name="profile.phone"
-                          value={formData.profile.phone}
-                          onChange={handleChange}
-                          disabled={!editing}
-                          className={`input-field pl-10 ${errors.phone ? 'border-red-500' : ''} ${!editing ? 'bg-gray-50' : ''}`}
-                          placeholder="5XXXXXXXXX"
-                        />
-                      </div>
+                      <input
+                        type="tel"
+                        name="profile.phone"
+                        value={formData.profile.phone}
+                        onChange={handleChange}
+                        disabled={!editing}
+                        className={`input-field ${errors.phone ? 'border-red-500' : ''} ${!editing ? 'bg-gray-50' : ''}`}
+                        placeholder="5XXXXXXXXX"
+                      />
                       {errors.phone && (
                         <div className="flex items-center space-x-1 text-red-600 text-sm mt-1">
                           <AlertCircle className="w-4 h-4" />
@@ -368,20 +358,15 @@ export default function ProfilePage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Şehir</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <MapPin className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                          type="text"
-                          name="profile.city"
-                          value={formData.profile.city}
-                          onChange={handleChange}
-                          disabled={!editing}
-                          className={`input-field pl-10 ${errors.city ? 'border-red-500' : ''} ${!editing ? 'bg-gray-50' : ''}`}
-                          placeholder="İstanbul"
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        name="profile.city"
+                        value={formData.profile.city}
+                        onChange={handleChange}
+                        disabled={!editing}
+                        className={`input-field ${errors.city ? 'border-red-500' : ''} ${!editing ? 'bg-gray-50' : ''}`}
+                        placeholder="İstanbul"
+                      />
                       {errors.city && (
                         <div className="flex items-center space-x-1 text-red-600 text-sm mt-1">
                           <AlertCircle className="w-4 h-4" />
@@ -408,8 +393,7 @@ export default function ProfilePage() {
                 {/* Driver Details */}
                 {isDriver && (
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                      <Truck className="w-5 h-5 mr-2 text-blue-600" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">
                       Şoför Bilgileri
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -489,8 +473,7 @@ export default function ProfilePage() {
                 {/* Employer Details */}
                 {isEmployer && (
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                      <Building2 className="w-5 h-5 mr-2 text-blue-600" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">
                       Şirket Bilgileri
                     </h3>
                     <div className="space-y-4">
@@ -545,18 +528,13 @@ export default function ProfilePage() {
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Hesap Bilgileri</h3>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Mail className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        type="email"
-                        value={user.email}
-                        disabled
-                        className="input-field pl-10 bg-gray-50"
-                        placeholder="Email adresiniz"
-                      />
-                    </div>
+                    <input
+                      type="email"
+                      value={user.email}
+                      disabled
+                      className="input-field bg-gray-50"
+                      placeholder="Email adresiniz"
+                    />
                     <p className="text-xs text-gray-500 mt-1">Email adresi değiştirilemez</p>
                   </div>
                 </div>
