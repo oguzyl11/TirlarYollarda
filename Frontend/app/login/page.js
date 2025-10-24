@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { Mail, Lock, Eye, EyeOff, Truck, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
@@ -74,6 +75,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Toaster position="top-right" />
+      
+      <Header />
       
       <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full">

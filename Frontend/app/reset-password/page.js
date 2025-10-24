@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { ArrowLeft, Lock, CheckCircle, AlertCircle } from 'lucide-react';
 import { authAPI } from '../../lib/api';
@@ -89,6 +90,8 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen bg-gray-50">
         <Toaster position="top-right" />
         
+        <Header />
+        
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -147,6 +150,8 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Toaster position="top-right" />
+      
+      <Header />
       
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">

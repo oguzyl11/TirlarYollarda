@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import { authAPI } from '../../lib/api';
@@ -45,6 +46,8 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Toaster position="top-right" />
+      
+      <Header />
       
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
