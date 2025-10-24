@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Truck, Menu, X, User, LogOut, Bell } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -33,8 +34,15 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-              <Truck className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 relative">
+              <Image
+                src="/logo.png"
+                alt="TırlarYollarda Logo"
+                width={40}
+                height={40}
+                className="rounded-lg"
+                priority
+              />
             </div>
             <span className="text-xl font-bold text-gray-900">TırlarYollarda</span>
           </Link>
