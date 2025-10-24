@@ -86,7 +86,7 @@ export default function Home() {
               Nakliyat Sektörünün <span className="text-blue-600">Buluşma Noktası</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Binlerce şirket ve şoför TırlarYollarda'da işbirliği yapıyor
+              Binlerce şirket ve şoför LoadING'de işbirliği yapıyor
             </p>
           </div>
 
@@ -130,7 +130,7 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              <button type="submit" className="btn-primary whitespace-nowrap">
+              <button type="submit" className="bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl whitespace-nowrap">
                 İş Ara
               </button>
             </div>
@@ -299,7 +299,7 @@ export default function Home() {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Truck className="w-6 h-6 text-blue-600" />
-                <span className="font-bold text-lg">TırlarYollarda</span>
+                <span className="font-bold text-lg">LoadING</span>
               </div>
               <p className="text-gray-400 text-sm">
                 Nakliyat sektörünün dijital buluşma noktası
@@ -331,7 +331,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
-            © 2025 TırlarYollarda. Tüm hakları saklıdır.
+            © 2025 LoadING. Tüm hakları saklıdır.
           </div>
         </div>
       </footer>
