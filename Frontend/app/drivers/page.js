@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { 
   Truck, 
@@ -14,7 +15,9 @@ import {
   Filter,
   X,
   User,
-  Briefcase
+  Briefcase,
+  TrendingUp,
+  Award
 } from 'lucide-react';
 import { userAPI } from '../../lib/api';
 
@@ -111,6 +114,7 @@ export default function DriversPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -126,11 +130,108 @@ export default function DriversPage() {
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <Filter className="w-5 h-5" />
-              <span>Filtreler</span>
+              <Filter className="w-5 h-5 text-gray-700" />
+              <span className="text-gray-800 font-medium">Filtreler</span>
             </button>
           </div>
         </div>
+
+        {/* Popular Drivers Section */}
+        <section className="mb-12">
+          <div className="flex items-center space-x-3 mb-6">
+            <TrendingUp className="w-6 h-6 text-blue-600" />
+            <h2 className="text-2xl font-bold text-gray-900">Popüler Şoförler</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {drivers
+              .filter(driver => (driver.rating?.average || 0) >= 4.5)
+              .slice(0, 6)
+              .map((driver) => (
+                <div key={driver._id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg hover:border-blue-200 transition-all duration-300">
+                  <div className="p-6">
+                    {/* Driver Info */}
+                    <div className="flex items-start space-x-4 mb-4">
+                      <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <User className="w-7 h-7 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">
+                          {driver.profile?.firstName} {driver.profile?.lastName}
+                        </h3>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                          <MapPin className="w-4 h-4" />
+                          <span>{driver.profile?.city || 'Şehir belirtilmemiş'}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Award className="w-4 h-4 text-yellow-500" />
+                        <span className="text-xs font-medium text-yellow-600">Popüler</span>
+                      </div>
+                    </div>
+
+                    {/* Rating */}
+                    <div className="flex items-center space-x-2 mb-4">
+                      <div className="flex items-center space-x-1">
+                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                        <span className="font-semibold text-gray-800">
+                          {getRatingDisplay(driver.rating).toFixed(1)}
+                        </span>
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        ({getReviewCount(driver.rating)} değerlendirme)
+                      </span>
+                    </div>
+
+                    {/* Driver Details */}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <Truck className="w-4 h-4" />
+                        <span>{driver.driverDetails?.vehicleType || 'Araç tipi belirtilmemiş'}</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <Clock className="w-4 h-4" />
+                        <span>{driver.driverDetails?.experienceYears || 0} yıl deneyim</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <Briefcase className="w-4 h-4" />
+                        <span>{driver.stats?.completedJobs || 0} tamamlanan iş</span>
+                      </div>
+                    </div>
+
+                    {/* Specialties */}
+                    {driver.driverDetails?.specialties && driver.driverDetails.specialties.length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-1">
+                          {driver.driverDetails.specialties.slice(0, 2).map((specialty, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                            >
+                              {specialty}
+                            </span>
+                          ))}
+                          {driver.driverDetails.specialties.length > 2 && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                              +{driver.driverDetails.specialties.length - 2} daha
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action Button */}
+                    <Link
+                      href={`/drivers/${driver._id}`}
+                      className="block w-full text-center bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Profili Görüntüle
+                    </Link>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </section>
 
         {/* Search and Filters */}
         <div className="mb-8">
@@ -142,7 +243,7 @@ export default function DriversPage() {
                 placeholder="Şoför ara..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
               />
             </div>
           </div>
@@ -152,11 +253,11 @@ export default function DriversPage() {
             <div className="bg-white p-6 rounded-lg border border-gray-200 mb-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Şehir</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-2">Şehir</label>
                   <select
                     value={selectedCity}
                     onChange={(e) => setSelectedCity(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   >
                     <option value="">Tüm Şehirler</option>
                     {cities.map(city => (
@@ -166,11 +267,11 @@ export default function DriversPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Minimum Puan</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-2">Minimum Puan</label>
                   <select
                     value={selectedRating}
                     onChange={(e) => setSelectedRating(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   >
                     <option value="">Tüm Puanlar</option>
                     {ratingOptions.map(option => (
@@ -183,7 +284,7 @@ export default function DriversPage() {
               <div className="flex justify-end mt-4">
                 <button
                   onClick={clearFilters}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors"
                 >
                   Filtreleri Temizle
                 </button>
@@ -192,8 +293,15 @@ export default function DriversPage() {
           )}
         </div>
 
-        {/* Drivers Grid */}
-        {filteredDrivers.length === 0 ? (
+        {/* All Drivers Section */}
+        <section>
+          <div className="flex items-center space-x-3 mb-6">
+            <Truck className="w-6 h-6 text-blue-600" />
+            <h2 className="text-2xl font-bold text-gray-900">Tüm Şoförler</h2>
+          </div>
+
+          {/* Drivers Grid */}
+          {filteredDrivers.length === 0 ? (
           <div className="text-center py-12">
             <Truck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Şoför bulunamadı</h3>
@@ -301,6 +409,7 @@ export default function DriversPage() {
             ))}
           </div>
         )}
+        </section>
       </div>
       
       <Footer />

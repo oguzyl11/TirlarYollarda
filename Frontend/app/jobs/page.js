@@ -180,9 +180,9 @@ export default function JobsPage() {
               <button
                 type="button"
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-black"
+                className="flex items-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-800 font-medium"
               >
-                <SlidersHorizontal className="w-5 h-5 mr-2" />
+                <SlidersHorizontal className="w-5 h-5 mr-2 text-gray-700" />
                 Filtreler
               </button>
               <button
@@ -199,7 +199,7 @@ export default function JobsPage() {
             <div className="border-t border-gray-200 pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Şehir</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-2">Şehir</label>
                   <div className="relative">
                     <input
                       type="text"
@@ -230,7 +230,7 @@ export default function JobsPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Yük Tipi</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-2">Yük Tipi</label>
                   <select
                     value={filters.loadType}
                     onChange={(e) => handleFilterChange('loadType', e.target.value)}
@@ -246,7 +246,7 @@ export default function JobsPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Araç Tipi</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-2">Araç Tipi</label>
                   <select
                     value={filters.vehicleType}
                     onChange={(e) => handleFilterChange('vehicleType', e.target.value)}
@@ -261,7 +261,7 @@ export default function JobsPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Sıralama</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-2">Sıralama</label>
                   <select
                     value={filters.sortBy}
                     onChange={(e) => handleFilterChange('sortBy', e.target.value)}
@@ -278,7 +278,7 @@ export default function JobsPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Min. Ücret (TL)</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-2">Min. Ücret (TL)</label>
                   <input
                     type="number"
                     placeholder="0"
@@ -289,7 +289,7 @@ export default function JobsPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Max. Ücret (TL)</label>
+                  <label className="block text-sm font-medium text-gray-800 mb-2">Max. Ücret (TL)</label>
                   <input
                     type="number"
                     placeholder="100000"

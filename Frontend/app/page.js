@@ -10,6 +10,8 @@ import Footer from '../components/Footer';
 export default function Home() {
   const [featuredJobs, setFeaturedJobs] = useState([]);
   const [recentJobs, setRecentJobs] = useState([]);
+  const [popularCompanies, setPopularCompanies] = useState([]);
+  const [popularDrivers, setPopularDrivers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCity, setSearchCity] = useState('');
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -30,6 +32,7 @@ export default function Home() {
 
   useEffect(() => {
     loadJobs();
+    loadPopularData();
   }, []);
 
   // Dropdown'ı dışına tıklandığında kapat
@@ -54,6 +57,28 @@ export default function Home() {
       setFeaturedJobs(response.data.data.slice(0, 3));
     } catch (error) {
       console.error('İlanlar yüklenemedi:', error);
+    }
+  };
+
+  const loadPopularData = async () => {
+    try {
+      // Popüler şirketleri çek
+      const companiesResponse = await userAPI.getCompanies();
+      const topCompanies = companiesResponse.data.data
+        .filter(company => (company.rating?.average || 0) >= 4.0)
+        .sort((a, b) => (b.rating?.average || 0) - (a.rating?.average || 0))
+        .slice(0, 4);
+      setPopularCompanies(topCompanies);
+
+      // Popüler şoförleri çek
+      const driversResponse = await userAPI.getDrivers();
+      const topDrivers = driversResponse.data.data
+        .filter(driver => (driver.rating?.average || 0) >= 4.0)
+        .sort((a, b) => (b.rating?.average || 0) - (a.rating?.average || 0))
+        .slice(0, 4);
+      setPopularDrivers(topDrivers);
+    } catch (error) {
+      console.error('Popüler veriler yüklenemedi:', error);
     }
   };
 
@@ -214,24 +239,33 @@ export default function Home() {
                 </Link>
               </div>
               <div className="space-y-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="card p-4 flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Building2 className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">Örnek Lojistik A.Ş.</h3>
-                      <div className="flex items-center space-x-3 text-sm text-gray-500">
-                        <span className="flex items-center space-x-1">
-                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                          <span>4.8</span>
-                        </span>
-                        <span>•</span>
-                        <span>250+ İş</span>
+                {popularCompanies.length > 0 ? (
+                  popularCompanies.map((company) => (
+                    <div key={company._id} className="card p-4 flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Building2 className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{company.employerDetails?.companyName || 'Şirket Adı'}</h3>
+                        <div className="flex items-center space-x-3 text-sm text-gray-500">
+                          <span className="flex items-center space-x-1">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <span>{(company.rating?.average || 0).toFixed(1)}</span>
+                          </span>
+                          <span>•</span>
+                          <span>{company.profile?.city || 'Şehir'}</span>
+                          <span>•</span>
+                          <span>{company.employerDetails?.postedJobs || 0} iş</span>
+                        </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Building2 className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p>Henüz şirket verisi bulunmuyor</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -247,24 +281,35 @@ export default function Home() {
                 </Link>
               </div>
               <div className="space-y-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="card p-4 flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Users className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">Mehmet Y.</h3>
-                      <div className="flex items-center space-x-3 text-sm text-gray-500">
-                        <span className="flex items-center space-x-1">
-                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                          <span>4.9</span>
-                        </span>
-                        <span>•</span>
-                        <span>15 yıl tecrübe</span>
+                {popularDrivers.length > 0 ? (
+                  popularDrivers.map((driver) => (
+                    <div key={driver._id} className="card p-4 flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Users className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">
+                          {driver.profile?.firstName || 'Ad'} {driver.profile?.lastName || 'Soyad'}
+                        </h3>
+                        <div className="flex items-center space-x-3 text-sm text-gray-500">
+                          <span className="flex items-center space-x-1">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <span>{(driver.rating?.average || 0).toFixed(1)}</span>
+                          </span>
+                          <span>•</span>
+                          <span>{driver.profile?.city || 'Şehir'}</span>
+                          <span>•</span>
+                          <span>{driver.driverDetails?.experienceYears || 0} yıl tecrübe</span>
+                        </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p>Henüz şoför verisi bulunmuyor</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
