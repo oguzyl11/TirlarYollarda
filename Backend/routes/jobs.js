@@ -170,7 +170,25 @@ router.post('/', auth, [
         }
 
         const jobData = req.body;
-        jobData.postedBy = req.user.userId;
+        jobData.postedBy = req.user.userId; // Gerçek kullanıcı ID'sini kullan
+
+        // Date string'lerini Date objelerine çevir
+        if (jobData.schedule?.startDate) {
+            jobData.schedule.startDate = new Date(jobData.schedule.startDate);
+        }
+        if (jobData.schedule?.endDate) {
+            jobData.schedule.endDate = new Date(jobData.schedule.endDate);
+        }
+
+        // Boş string'leri undefined yap (MongoDB validation için)
+        if (jobData.loadDetails?.type === '') {
+            jobData.loadDetails.type = undefined;
+        }
+        if (jobData.vehicleRequirements?.type === '') {
+            jobData.vehicleRequirements.type = undefined;
+        }
+
+        console.log('Processed job data:', jobData);
 
         const job = new Job(jobData);
         await job.save();

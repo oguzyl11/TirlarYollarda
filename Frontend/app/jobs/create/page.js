@@ -208,7 +208,21 @@ export default function CreateJobPage() {
     } catch (error) {
       console.error('İş oluşturma hatası:', error);
       console.error('Error response:', error.response?.data);
-      toast.error(error.response?.data?.message || 'İş ilanı oluşturulurken hata oluştu');
+      
+      // Daha detaylı hata mesajları
+      if (error.response?.data?.errors) {
+        const errorMessages = error.response.data.errors.map(err => err.msg).join(', ');
+        toast.error(`Hata: ${errorMessages}`);
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.response?.status === 401) {
+        toast.error('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
+        router.push('/login');
+      } else if (error.response?.status === 403) {
+        toast.error('Bu işlemi yapma yetkiniz yok.');
+      } else {
+        toast.error('İş ilanı oluşturulurken hata oluştu. Lütfen tekrar deneyin.');
+      }
     } finally {
       setLoading(false);
     }

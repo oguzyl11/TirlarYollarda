@@ -28,6 +28,7 @@ const jobSchema = new mongoose.Schema({
                 type: String,
                 required: true
             },
+            address: String,
             district: String,
             coordinates: {
                 lat: Number,
@@ -39,6 +40,7 @@ const jobSchema = new mongoose.Schema({
                 type: String,
                 required: true
             },
+            address: String,
             district: String,
             coordinates: {
                 lat: Number,

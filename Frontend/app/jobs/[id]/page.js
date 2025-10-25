@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Footer from '../../../components/Footer';
+import RouteMap from '../../../components/RouteMap';
 import { 
   Truck, 
   ArrowLeft, 
@@ -229,6 +230,18 @@ export default function JobDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Route Map */}
+            <RouteMap 
+              fromCity={job.route?.from?.city}
+              toCity={job.route?.to?.city}
+              jobDetails={{
+                loadType: job.loadDetails?.type,
+                vehicleType: job.vehicleRequirements?.type,
+                specialRequirements: job.loadDetails?.specialRequirements,
+                urgent: job.schedule?.urgent
+              }}
+            />
 
             {/* Load Details */}
             {job.loadDetails && (
