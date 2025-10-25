@@ -3,6 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const Bid = require('../models/Bid');
 const Job = require('../models/Job');
+const Notification = require('../models/Notification');
 const auth = require('../middleware/auth');
 
 // @route   POST /api/bids
@@ -10,7 +11,7 @@ const auth = require('../middleware/auth');
 // @access  Private
 router.post('/', auth, [
     body('job').isMongoId(),
-    body('amount').isNumeric(),
+    body('proposedAmount').isNumeric(),
     body('message').optional().isLength({ max: 500 })
 ], async (req, res) => {
     try {
@@ -18,16 +19,17 @@ router.post('/', auth, [
         if (!errors.isEmpty()) {
             return res.status(400).json({
                 success: false,
+                message: 'Geçersiz veri gönderildi',
                 errors: errors.array()
             });
         }
 
-        const { jobId, proposedAmount, message, estimatedDays } = req.body;
-        const job = jobId;
+        const { job, proposedAmount, message, estimatedDays } = req.body;
+        const jobId = job;
         const amount = proposedAmount;
 
         // Check if job exists
-        const jobData = await Job.findById(job);
+        const jobData = await Job.findById(jobId);
         if (!jobData) {
             return res.status(404).json({
                 success: false,
@@ -53,7 +55,7 @@ router.post('/', auth, [
 
         // Check if already bidded
         const existingBid = await Bid.findOne({
-            job,
+            job: jobId,
             bidder: req.user.userId
         });
 
@@ -66,12 +68,14 @@ router.post('/', auth, [
 
         // Create bid
         const bid = new Bid({
-            job,
+            job: jobId,
             bidder: req.user.userId,
-            amount,
+            amount: proposedAmount,
             message,
-            proposedStartDate,
-            estimatedDuration
+            estimatedDuration: estimatedDays ? {
+                value: estimatedDays,
+                unit: 'days'
+            } : undefined
         });
 
         await bid.save();
@@ -79,6 +83,22 @@ router.post('/', auth, [
         // Add bid to job
         jobData.bids.push(bid._id);
         await jobData.save();
+
+        // Create notification for job owner
+        const notification = new Notification({
+            userId: jobData.postedBy,
+            type: 'bid_received',
+            title: 'Yeni Teklif Aldınız',
+            message: `${req.user.profile?.firstName || 'Bir şoför'} "${jobData.title}" işinize teklif verdi.`,
+            data: {
+                bidId: bid._id,
+                jobId: jobData._id,
+                bidderId: req.user.userId,
+                amount: proposedAmount
+            },
+            priority: 'medium'
+        });
+        await notification.save();
 
         const populatedBid = await Bid.findById(bid._id)
             .populate('bidder', 'profile rating')
@@ -113,7 +133,7 @@ router.get('/job/:jobId', auth, async (req, res) => {
         }
 
         // Only job owner can see bids
-        if (job.postedBy.toString() !== req.user.userId) {
+        if (job.postedBy.toString() !== req.user.userId.toString()) {
             return res.status(403).json({
                 success: false,
                 message: 'Bu işlem için yetkiniz yok'
@@ -219,7 +239,7 @@ router.patch('/:id/status', auth, [
         }
 
         // Only job owner can accept/reject bids
-        if (bid.job.postedBy.toString() !== req.user.userId) {
+        if (bid.job.postedBy.toString() !== req.user.userId.toString()) {
             return res.status(403).json({
                 success: false,
                 message: 'Bu i�lem i�in yetkiniz yok'
@@ -228,8 +248,41 @@ router.patch('/:id/status', auth, [
 
         const { status } = req.body;
 
+        // If rejected, delete the bid
+        if (status === 'rejected') {
+            await Bid.findByIdAndDelete(req.params.id);
+            
+            res.json({
+                success: true,
+                message: 'Teklif reddedildi ve silindi'
+            });
+            return;
+        }
+
         bid.status = status;
         await bid.save();
+
+        // Create notification for bidder
+        const notificationType = status === 'accepted' ? 'bid_accepted' : 'bid_rejected';
+        const notificationTitle = status === 'accepted' ? 'Teklifiniz Kabul Edildi!' : 'Teklifiniz Reddedildi';
+        const notificationMessage = status === 'accepted' 
+            ? `"${bid.job.title}" işi için verdiğiniz teklif kabul edildi!`
+            : `"${bid.job.title}" işi için verdiğiniz teklif reddedildi.`;
+
+        const notification = new Notification({
+            userId: bid.bidder,
+            type: notificationType,
+            title: notificationTitle,
+            message: notificationMessage,
+            data: {
+                bidId: bid._id,
+                jobId: bid.job._id,
+                status: status,
+                amount: bid.amount
+            },
+            priority: status === 'accepted' ? 'high' : 'medium'
+        });
+        await notification.save();
 
         // If accepted, update job status and set acceptedBid
         if (status === 'accepted') {
@@ -242,6 +295,30 @@ router.patch('/:id/status', auth, [
                 { job: bid.job._id, _id: { $ne: bid._id } },
                 { status: 'rejected' }
             );
+
+            // Create notifications for rejected bidders
+            const rejectedBids = await Bid.find({ 
+                job: bid.job._id, 
+                _id: { $ne: bid._id },
+                status: 'rejected'
+            });
+
+            for (const rejectedBid of rejectedBids) {
+                const rejectedNotification = new Notification({
+                    userId: rejectedBid.bidder,
+                    type: 'bid_rejected',
+                    title: 'Teklifiniz Reddedildi',
+                    message: `"${bid.job.title}" işi için verdiğiniz teklif reddedildi.`,
+                    data: {
+                        bidId: rejectedBid._id,
+                        jobId: bid.job._id,
+                        status: 'rejected',
+                        amount: rejectedBid.amount
+                    },
+                    priority: 'low'
+                });
+                await rejectedNotification.save();
+            }
         }
 
         res.json({

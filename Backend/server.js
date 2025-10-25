@@ -30,18 +30,21 @@ app.use(morgan('combined'));
 // Serve static files
 app.use('/uploads', express.static('uploads'));
 
-// Rate limiting
+// Rate limiting - More generous limits for development
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // Increased from 100 to 1000 requests per window
+    message: {
+        success: false,
+        message: 'Çok fazla istek gönderildi. Lütfen biraz bekleyin.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
 });
 app.use('/api/', limiter);
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('✅ MongoDB bağlantısı başarılı'))
     .catch(err => {
         console.error('❌ MongoDB bağlantı hatası:', err);

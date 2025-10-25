@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { rateLimitedApiCall } from './rateLimiter';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
@@ -24,17 +25,47 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    // Handle 401 errors
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        // Sadece login sayfasında değilsek yönlendir
-        if (window.location.pathname !== '/login') {
+        console.log('401 error detected, current path:', window.location.pathname);
+        
+        // Don't auto-redirect for any critical operations
+        const criticalPaths = ['/jobs/create', '/jobs/edit', '/bids', '/dashboard', '/profile'];
+        const isCriticalPath = criticalPaths.some(path => 
+          window.location.pathname.includes(path)
+        );
+        
+        console.log('Is critical path:', isCriticalPath);
+        
+        // Only redirect if it's NOT a critical path and NOT already on login page
+        if (!isCriticalPath && window.location.pathname !== '/login') {
+          console.log('Redirecting to login...');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
           window.location.href = '/login';
+        } else {
+          console.log('Skipping redirect for critical path or already on login');
         }
       }
     }
+    
+    // Handle 429 errors with more aggressive backoff
+    if (error.response?.status === 429) {
+      const config = error.config;
+      if (!config._retry) {
+        config._retry = true;
+        const delay = 5000; // 5 second delay (increased)
+        
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(api(config));
+          }, delay);
+        });
+      }
+    }
+    
     return Promise.reject(error);
   }
 );
@@ -56,13 +87,25 @@ export const notificationAPI = {
 };
 
 export const jobAPI = {
-  getJobs: (params) => api.get('/jobs', { params }),
-  getJob: (id) => api.get(`/jobs/${id}`),
-  getJobDetails: (id) => api.get(`/jobs/${id}`),
+  getJobs: (params) => rateLimitedApiCall(
+    () => api.get('/jobs', { params }),
+    `getJobs_${JSON.stringify(params || {})}`
+  ),
+  getJob: (id) => rateLimitedApiCall(
+    () => api.get(`/jobs/${id}`),
+    `getJob_${id}`
+  ),
+  getJobDetails: (id) => rateLimitedApiCall(
+    () => api.get(`/jobs/${id}`),
+    `getJobDetails_${id}`
+  ),
   createJob: (data) => api.post('/jobs', data),
   updateJob: (id, data) => api.put(`/jobs/${id}`, data),
   deleteJob: (id) => api.delete(`/jobs/${id}`),
-  getMyJobs: () => api.get('/jobs/user/my-jobs'),
+  getMyJobs: () => rateLimitedApiCall(
+    () => api.get('/jobs/user/my-jobs'),
+    'getMyJobs'
+  ),
 };
 
 export const bidAPI = {
@@ -74,7 +117,10 @@ export const bidAPI = {
 };
 
 export const userAPI = {
-  getProfile: (id) => api.get(`/users/${id}`),
+  getProfile: (id) => rateLimitedApiCall(
+    () => api.get(`/users/${id}`),
+    `getProfile_${id}`
+  ),
   updateProfile: (data) => {
     // Check if data is FormData (for file uploads)
     if (data instanceof FormData) {
@@ -87,10 +133,22 @@ export const userAPI = {
     // Regular JSON data
     return api.put('/users/profile', data);
   },
-  getCompanies: () => api.get('/users/companies'),
-  getCompanyDetails: (id) => api.get(`/users/companies/${id}`),
-  getDrivers: () => api.get('/users/drivers'),
-  getDriverDetails: (id) => api.get(`/users/drivers/${id}`),
+  getCompanies: () => rateLimitedApiCall(
+    () => api.get('/users/companies'),
+    'getCompanies'
+  ),
+  getCompanyDetails: (id) => rateLimitedApiCall(
+    () => api.get(`/users/companies/${id}`),
+    `getCompanyDetails_${id}`
+  ),
+  getDrivers: () => rateLimitedApiCall(
+    () => api.get('/users/drivers'),
+    'getDrivers'
+  ),
+  getDriverDetails: (id) => rateLimitedApiCall(
+    () => api.get(`/users/drivers/${id}`),
+    `getDriverDetails_${id}`
+  ),
 };
 
 export const reviewAPI = {

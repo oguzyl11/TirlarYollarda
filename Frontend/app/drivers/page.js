@@ -25,6 +25,7 @@ export default function DriversPage() {
   const router = useRouter();
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedRating, setSelectedRating] = useState('');
@@ -51,10 +52,24 @@ export default function DriversPage() {
   const fetchDrivers = async () => {
     try {
       setLoading(true);
+      setError(null);
+      console.log('Şoförler API çağrısı başlatılıyor...');
       const response = await userAPI.getDrivers();
+      console.log('Şoförler API yanıtı:', response);
       setDrivers(response.data.data || []);
     } catch (error) {
       console.error('Error fetching drivers:', error);
+      console.error('Error details:', error.response?.data);
+      
+      // Set user-friendly error message
+      if (error.message?.includes('Circuit breaker')) {
+        setError('API geçici olarak devre dışı. Lütfen birkaç dakika sonra tekrar deneyin.');
+      } else if (error.response?.status === 429) {
+        setError('Çok fazla istek gönderildi. Lütfen biraz bekleyin.');
+      } else {
+        setError('Şoförler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.');
+      }
+      
       setDrivers([]);
     } finally {
       setLoading(false);
@@ -101,10 +116,35 @@ export default function DriversPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
+        <Header />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
             <p className="text-gray-600 mt-4">Şoförler yükleniyor...</p>
+            <p className="text-sm text-gray-500 mt-2">Bu işlem birkaç saniye sürebilir</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              <p className="font-bold">Hata!</p>
+              <p>{error}</p>
+            </div>
+            <button
+              onClick={fetchDrivers}
+              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors"
+            >
+              Tekrar Dene
+            </button>
           </div>
         </div>
         <Footer />
@@ -156,9 +196,22 @@ export default function DriversPage() {
                         <User className="w-7 h-7 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate">
-                          {driver.profile?.firstName} {driver.profile?.lastName}
-                        </h3>
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h3 className="text-lg font-semibold text-gray-900 truncate">
+                            {driver.profile?.firstName} {driver.profile?.lastName}
+                          </h3>
+                          {driver.verified ? (
+                            <span className="flex-shrink-0 w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center" title="Doğrulanmış Şoför">
+                              <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </span>
+                          ) : (
+                            <span className="flex-shrink-0 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full" title="Yeni Şoför">
+                              Yeni
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center space-x-2 text-sm text-gray-600">
                           <MapPin className="w-4 h-4" />
                           <span>{driver.profile?.city || 'Şehir belirtilmemiş'}</span>
@@ -330,9 +383,22 @@ export default function DriversPage() {
                       <User className="w-8 h-8 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-gray-900 truncate">
-                        {driver.profile?.firstName} {driver.profile?.lastName}
-                      </h3>
+                      <div className="flex items-center space-x-2 mb-1">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">
+                          {driver.profile?.firstName} {driver.profile?.lastName}
+                        </h3>
+                        {driver.verified ? (
+                          <span className="flex-shrink-0 w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center" title="Doğrulanmış Şoför">
+                            <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </span>
+                        ) : (
+                          <span className="flex-shrink-0 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full" title="Yeni Şoför">
+                            Yeni
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
                         <MapPin className="w-4 h-4" />
                         <span>{driver.profile?.city || 'Şehir belirtilmemiş'}</span>

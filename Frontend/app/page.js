@@ -79,6 +79,9 @@ export default function Home() {
       setPopularDrivers(topDrivers);
     } catch (error) {
       console.error('Popüler veriler yüklenemedi:', error);
+      // Set empty arrays on error to prevent UI issues
+      setPopularCompanies([]);
+      setPopularDrivers([]);
     }
   };
 

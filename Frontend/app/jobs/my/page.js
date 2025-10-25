@@ -40,7 +40,7 @@ export default function MyJobsPage() {
     }
     
     // Auth durumu belirlendikten sonra kontrol et
-    if (!isAuthenticated || user?.userType !== 'employer') {
+    if (!isAuthenticated || (user?.userType !== 'employer' && user?.userType !== 'individual')) {
       router.push('/login');
       return;
     }
@@ -63,17 +63,29 @@ export default function MyJobsPage() {
   };
 
   const handleDeleteJob = async (jobId) => {
-    if (!confirm('Bu iş ilanını silmek istediğinizden emin misiniz?')) {
+    const jobType = user?.userType === 'individual' ? 'eşya taşıma isteğini' : 'iş ilanını';
+    
+    if (!confirm(`Bu ${jobType} silmek istediğinizden emin misiniz?`)) {
       return;
     }
 
     try {
+      console.log('Deleting job:', jobId);
       await jobAPI.deleteJob(jobId);
-      toast.success('İş ilanı başarıyla silindi');
+      toast.success(`${user?.userType === 'individual' ? 'Eşya taşıma isteği' : 'İş ilanı'} başarıyla silindi`);
       loadMyJobs();
     } catch (error) {
       console.error('İş silme hatası:', error);
-      toast.error('İş silinirken hata oluştu');
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      if (error.response?.status === 403) {
+        toast.error('Bu işi silme yetkiniz yok');
+      } else if (error.response?.status === 404) {
+        toast.error('İş bulunamadı');
+      } else {
+        toast.error(`${user?.userType === 'individual' ? 'Eşya taşıma isteği' : 'İş'} silinirken hata oluştu`);
+      }
     }
   };
 
@@ -81,19 +93,22 @@ export default function MyJobsPage() {
     router.push(`/jobs/edit/${jobId}`);
   };
 
-  if (!initialized || !isAuthenticated || user?.userType !== 'employer') {
+  if (!initialized || !isAuthenticated || (user?.userType !== 'employer' && user?.userType !== 'individual')) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Yükleniyor...</p>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Yükleniyor...</p>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Toaster position="top-right" />
       
       {/* Header */}
@@ -117,7 +132,9 @@ export default function MyJobsPage() {
                     priority
                   />
                 </div>
-                <span className="text-xl font-bold text-gray-900">İşlerim</span>
+                <span className="text-xl font-bold text-gray-900">
+                  {user?.userType === 'individual' ? 'Eşya Taşıma İsteklerim' : 'İşlerim'}
+                </span>
               </div>
             </div>
             <Link
@@ -125,19 +142,24 @@ export default function MyJobsPage() {
               className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Yeni İş İlanı
+              {user?.userType === 'individual' ? 'Yeni İstek' : 'Yeni İş İlanı'}
             </Link>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">İşlerim</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {user?.userType === 'individual' ? 'Eşya Taşıma İsteklerim' : 'İşlerim'}
+          </h1>
           <p className="text-gray-600">
-            Oluşturduğunuz iş ilanlarını buradan yönetebilirsiniz.
+            {user?.userType === 'individual' 
+              ? 'Oluşturduğunuz eşya taşıma isteklerini buradan yönetebilirsiniz.'
+              : 'Oluşturduğunuz iş ilanlarını buradan yönetebilirsiniz.'
+            }
           </p>
         </div>
 
@@ -236,20 +258,27 @@ export default function MyJobsPage() {
         ) : (
           <div className="text-center py-12">
             <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Henüz iş ilanınız yok</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              {user?.userType === 'individual' ? 'Henüz eşya taşıma isteğiniz yok' : 'Henüz iş ilanınız yok'}
+            </h3>
             <p className="text-gray-600 mb-6">
-              İlk iş ilanınızı oluşturarak başlayın.
+              {user?.userType === 'individual' 
+                ? 'İlk eşya taşıma isteğinizi oluşturarak başlayın.'
+                : 'İlk iş ilanınızı oluşturarak başlayın.'
+              }
             </p>
             <Link
               href="/jobs/create"
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
             >
               <Plus className="w-4 h-4 mr-2" />
-              İlk İşinizi Oluşturun
+              {user?.userType === 'individual' ? 'İlk İsteğinizi Oluşturun' : 'İlk İşinizi Oluşturun'}
             </Link>
           </div>
         )}
       </main>
+      
+      {/* Footer */}
       <Footer />
     </div>
   );

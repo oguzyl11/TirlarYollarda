@@ -84,7 +84,7 @@ export default function CreateJobPage() {
     }
     
     // Auth durumu belirlendikten sonra kontrol et
-    if (!isAuthenticated || user?.userType !== 'employer') {
+    if (!isAuthenticated || (user?.userType !== 'employer' && user?.userType !== 'individual')) {
       router.push('/login');
       return;
     }
@@ -148,10 +148,13 @@ export default function CreateJobPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.description || !formData.route.from.city || !formData.route.to.city) {
+    if (!formData.title?.trim() || !formData.description?.trim() || !formData.route.from.city?.trim() || !formData.route.to.city?.trim()) {
       toast.error('Lütfen tüm zorunlu alanları doldurun');
       return;
     }
+
+    // Skip token validation - let API interceptor handle it
+    console.log('Proceeding with job creation without pre-validation...');
 
     try {
       setLoading(true);
@@ -183,7 +186,7 @@ export default function CreateJobPage() {
           specialRequirements: formData.vehicleRequirements.specialRequirements?.trim() || ''
         },
         schedule: {
-          startDate: formData.schedule.startDate || new Date().toISOString(),
+          startDate: formData.schedule.startDate || new Date().toISOString().slice(0, 16),
           endDate: formData.schedule.endDate || '',
           flexible: formData.schedule.flexible || false
         },
@@ -195,6 +198,9 @@ export default function CreateJobPage() {
       };
 
       console.log('Sending job data:', cleanedData);
+      console.log('Making jobAPI.createJob call...');
+      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api');
+      console.log('Token from localStorage:', localStorage.getItem('token'));
       const response = await jobAPI.createJob(cleanedData);
       console.log('Job creation response:', response);
       
@@ -208,6 +214,9 @@ export default function CreateJobPage() {
     } catch (error) {
       console.error('İş oluşturma hatası:', error);
       console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error message:', error.message);
+      console.error('Full error object:', error);
       
       // Daha detaylı hata mesajları
       if (error.response?.data?.errors) {
@@ -216,6 +225,7 @@ export default function CreateJobPage() {
       } else if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else if (error.response?.status === 401) {
+        console.log('401 error in job creation, redirecting to login...');
         toast.error('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
         router.push('/login');
       } else if (error.response?.status === 403) {
@@ -228,7 +238,7 @@ export default function CreateJobPage() {
     }
   };
 
-  if (!initialized || !isAuthenticated || user?.userType !== 'employer') {
+  if (!initialized || !isAuthenticated || (user?.userType !== 'employer' && user?.userType !== 'individual')) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -264,7 +274,9 @@ export default function CreateJobPage() {
                     priority
                   />
                 </div>
-                <span className="text-xl font-bold text-gray-900">Yeni İş İlanı</span>
+                <span className="text-xl font-bold text-gray-900">
+                  {user?.userType === 'individual' ? 'Eşya Taşıma İsteği' : 'Yeni İş İlanı'}
+                </span>
               </div>
             </div>
           </div>
@@ -276,33 +288,37 @@ export default function CreateJobPage() {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Temel Bilgiler</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+              {user?.userType === 'individual' ? 'Eşya Taşıma Detayları' : 'Temel Bilgiler'}
+            </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  İş Başlığı *
+                  {user?.userType === 'individual' ? 'Eşya Taşıma Başlığı *' : 'İş Başlığı *'}
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   className="input-field"
-                  placeholder="Örn: İstanbul'dan Ankara'ya kargo taşıma"
+                  placeholder={user?.userType === 'individual' ? "Örn: Ev eşyalarımı İstanbul'dan Ankara'ya taşıma" : "Örn: İstanbul'dan Ankara'ya kargo taşıma"}
                   required
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  İş Türü
+                  {user?.userType === 'individual' ? 'İstek Türü' : 'İş Türü'}
                 </label>
                 <select
                   value={formData.jobType}
                   onChange={(e) => handleInputChange('jobType', e.target.value)}
                   className="input-field"
                 >
-                  <option value="employer-seeking-driver">Şoför Arıyorum</option>
+                  <option value="employer-seeking-driver">
+                    {user?.userType === 'individual' ? 'Şoför Arıyorum' : 'Şoför Arıyorum'}
+                  </option>
                   <option value="driver-seeking-job">İş Arıyorum</option>
                 </select>
               </div>
@@ -310,13 +326,13 @@ export default function CreateJobPage() {
 
             <div className="mt-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Açıklama *
+                {user?.userType === 'individual' ? 'Eşya Taşıma Açıklaması *' : 'Açıklama *'}
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 className="input-field h-32"
-                placeholder="İş hakkında detaylı bilgi verin..."
+                placeholder={user?.userType === 'individual' ? "Taşınacak eşyalar hakkında detaylı bilgi verin..." : "İş hakkında detaylı bilgi verin..."}
                 required
               />
             </div>
@@ -545,7 +561,7 @@ export default function CreateJobPage() {
               ) : (
                 <Save className="w-4 h-4 mr-2" />
               )}
-              {loading ? 'Oluşturuluyor...' : 'İlanı Oluştur'}
+              {loading ? 'Oluşturuluyor...' : (user?.userType === 'individual' ? 'İsteği Oluştur' : 'İlanı Oluştur')}
             </button>
           </div>
         </form>

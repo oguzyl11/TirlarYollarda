@@ -26,7 +26,7 @@ export default function BidsPage() {
 
   useEffect(() => {
     initAuth();
-    if (!isAuthenticated || user?.userType !== 'driver') {
+    if (!isAuthenticated || (user?.userType !== 'driver' && user?.userType !== 'individual')) {
       router.push('/login');
       return;
     }
@@ -70,11 +70,14 @@ export default function BidsPage() {
 
   if (!isAuthenticated || user?.userType !== 'driver') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Yükleniyor...</p>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Yükleniyor...</p>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -97,7 +100,9 @@ export default function BidsPage() {
                 <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-green-700 rounded-lg flex items-center justify-center">
                   <Star className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-gray-900">Tekliflerim</span>
+                <span className="text-xl font-bold text-gray-900">
+                  {user?.userType === 'individual' ? 'Eşya Taşıma Tekliflerim' : 'Tekliflerim'}
+                </span>
               </div>
             </div>
           </div>
@@ -188,7 +193,7 @@ export default function BidsPage() {
                         </div>
                         <div className="flex items-center">
                           <span className="font-medium text-green-600">
-                            {bid.proposedAmount} TL
+                            {bid.amount} TL
                           </span>
                         </div>
                         <div className="flex items-center">

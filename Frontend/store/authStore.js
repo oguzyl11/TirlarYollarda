@@ -74,6 +74,41 @@ export const useAuthStore = create((set, get) => ({
     set({ user: null, token: null, isAuthenticated: false, initialized: false });
   },
 
+  // Token validation function
+  validateToken: async () => {
+    const { token } = get();
+    console.log('validateToken called, token exists:', !!token);
+    
+    if (!token) {
+      console.log('No token found, returning false');
+      return false;
+    }
+
+    try {
+      console.log('Making getMe API call to validate token...');
+      const response = await authAPI.getMe();
+      console.log('getMe response:', response.data);
+      
+      if (response.data.success) {
+        console.log('Token is valid, updating user data');
+        set({ user: response.data.user, isAuthenticated: true });
+        return true;
+      }
+    } catch (error) {
+      console.error('Token validation failed:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      if (error.response?.status === 401) {
+        console.log('401 error in token validation, logging out user');
+        // Token is invalid, logout user
+        get().logout();
+      }
+      return false;
+    }
+    return false;
+  },
+
   clearError: () => set({ error: null }),
 
   updateUser: (updatedUser) => {

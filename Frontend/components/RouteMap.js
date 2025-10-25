@@ -35,6 +35,20 @@ export default function RouteMap({ fromCity, toCity, jobDetails }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Türkiye'nin büyük şehirleri
+  const cities = [
+    'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Amasya', 'Ankara', 'Antalya', 'Artvin',
+    'Aydın', 'Balıkesir', 'Bilecik', 'Bingöl', 'Bitlis', 'Bolu', 'Burdur', 'Bursa',
+    'Çanakkale', 'Çankırı', 'Çorum', 'Denizli', 'Diyarbakır', 'Edirne', 'Elazığ', 'Erzincan',
+    'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane', 'Hakkari', 'Hatay', 'Isparta',
+    'Mersin', 'İstanbul', 'İzmir', 'Kars', 'Kastamonu', 'Kayseri', 'Kırklareli', 'Kırşehir',
+    'Kocaeli', 'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Kahramanmaraş', 'Mardin', 'Muğla',
+    'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Rize', 'Sakarya', 'Samsun', 'Siirt',
+    'Sinop', 'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Şanlıurfa', 'Uşak',
+    'Van', 'Yozgat', 'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman',
+    'Şırnak', 'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce'
+  ];
+
   // Türkiye şehir koordinatları
   const cityCoordinates = {
     'İstanbul': [41.0082, 28.9784],
@@ -79,7 +93,6 @@ export default function RouteMap({ fromCity, toCity, jobDetails }) {
     'Çankırı': [40.6013, 33.6134],
     'Kastamonu': [41.3887, 33.7827],
     'Sinop': [42.0231, 35.1531],
-    'Samsun': [41.2928, 36.3313],
     'Tokat': [40.3167, 36.5500],
     'Amasya': [40.6499, 35.8353],
     'Giresun': [40.9128, 38.3895],
@@ -109,10 +122,6 @@ export default function RouteMap({ fromCity, toCity, jobDetails }) {
     'Isparta': [37.7648, 30.5566],
     'Kütahya': [39.4200, 29.9830],
     'Çanakkale': [40.1553, 26.4142],
-    'Kırıkkale': [39.8468, 33.4988],
-    'Kırşehir': [39.1425, 34.1709],
-    'Nevşehir': [38.6939, 34.6857],
-    'Aksaray': [38.3687, 34.0370],
     'Niğde': [37.9667, 34.6833],
     'Adıyaman': [37.7636, 38.2786],
     'Batman': [37.8812, 41.1351],
@@ -287,6 +296,7 @@ export default function RouteMap({ fromCity, toCity, jobDetails }) {
           />
         </MapContainer>
       </div>
+
 
       {/* Additional Info */}
       {jobDetails && (

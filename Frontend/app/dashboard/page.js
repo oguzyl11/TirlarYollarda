@@ -34,6 +34,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user, isAuthenticated, logout, initAuth, initialized } = useAuthStore();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // İşveren için
   const [myJobs, setMyJobs] = useState([]);
@@ -42,6 +43,9 @@ export default function DashboardPage() {
   // Şoför için
   const [myBids, setMyBids] = useState([]);
   const [availableJobs, setAvailableJobs] = useState([]);
+  
+  // Bireysel kullanıcı için
+  const [myBidsIndividual, setMyBidsIndividual] = useState([]);
 
   useEffect(() => {
     initAuth();
@@ -66,9 +70,12 @@ export default function DashboardPage() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
+      setError(null);
+      console.log('Loading dashboard data for user type:', user?.userType);
       
       if (user?.userType === 'employer') {
         // İşveren için: Kendi işleri ve başvurular
+        console.log('Loading employer data...');
         const [jobsResponse, bidsResponse] = await Promise.all([
           jobAPI.getMyJobs(),
           bidAPI.getEmployerBids()
@@ -79,6 +86,7 @@ export default function DashboardPage() {
         
       } else if (user?.userType === 'driver') {
         // Şoför için: Başvurduğu işler
+        console.log('Loading driver data...');
         const bidsResponse = await bidAPI.getMyBids();
         setMyBids(bidsResponse.data.data || []);
         
@@ -86,18 +94,52 @@ export default function DashboardPage() {
         const jobsResponse = await jobAPI.getJobs({ limit: 10 });
         setAvailableJobs(jobsResponse.data.data || []);
       } else if (user?.userType === 'individual') {
-        // Bireysel kullanıcı için: Gönderdiği işler
-        const jobsResponse = await jobAPI.getMyJobs();
-        setMyJobs(jobsResponse.data.data || []);
+        // Bireysel kullanıcı için: Sadece kendi işleri ve mevcut işler
+        console.log('Loading individual user data...');
         
-        // Başvuru yapabileceği işler (son 10 iş)
-        const availableJobsResponse = await jobAPI.getJobs({ limit: 10 });
-        setAvailableJobs(availableJobsResponse.data.data || []);
+        try {
+          // Kendi işlerini yükle
+          console.log('Loading my jobs...');
+          const jobsResponse = await jobAPI.getMyJobs();
+          console.log('Jobs response:', jobsResponse.data);
+          setMyJobs(jobsResponse.data.data || []);
+        } catch (error) {
+          console.error('Error loading jobs:', error);
+          setMyJobs([]);
+        }
+        
+        try {
+          // Mevcut işleri yükle
+          console.log('Loading available jobs...');
+          const availableJobsResponse = await jobAPI.getJobs({ limit: 10 });
+          console.log('Available jobs response:', availableJobsResponse.data);
+          setAvailableJobs(availableJobsResponse.data.data || []);
+        } catch (error) {
+          console.error('Error loading available jobs:', error);
+          setAvailableJobs([]);
+        }
+        
+        // Başvurular için boş array set et (şimdilik)
+        setMyBidsIndividual([]);
       }
       
     } catch (error) {
       console.error('Dashboard verileri yüklenemedi:', error);
-      toast.error('Veriler yüklenirken hata oluştu');
+      console.error('Error details:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      // Set error state
+      setError(error.response?.data?.message || 'Veriler yüklenirken hata oluştu');
+      
+      // Daha detaylı hata mesajları
+      if (error.response?.status === 401) {
+        toast.error('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
+        router.push('/login');
+      } else if (error.response?.status === 403) {
+        toast.error('Bu sayfaya erişim yetkiniz yok.');
+      } else {
+        toast.error('Veriler yüklenirken hata oluştu. Lütfen sayfayı yenileyin.');
+      }
     } finally {
       setLoading(false);
     }
@@ -142,13 +184,61 @@ export default function DashboardPage() {
     }
   };
 
+  const handleCreateBid = async (jobId, proposedAmount, estimatedDays, message = '') => {
+    try {
+      await bidAPI.createBid({
+        job: jobId,
+        proposedAmount: parseInt(proposedAmount),
+        estimatedDays: parseInt(estimatedDays),
+        message: message
+      });
+      toast.success('Başvuru başarıyla gönderildi');
+      loadDashboardData();
+    } catch (error) {
+      console.error('Başvuru gönderme hatası:', error);
+      toast.error('Başvuru gönderilirken hata oluştu');
+    }
+  };
+
   if (!initialized || !isAuthenticated || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Yükleniyor...</p>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Yükleniyor...</p>
+          </div>
         </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center py-12">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              <p className="font-bold">Dashboard Hatası!</p>
+              <p>{error}</p>
+            </div>
+            <button
+              onClick={loadDashboardData}
+              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors mr-4"
+            >
+              Tekrar Dene
+            </button>
+            <button
+              onClick={() => router.push('/')}
+              className="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700 transition-colors"
+            >
+              Ana Sayfaya Dön
+            </button>
+          </div>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -290,11 +380,11 @@ export default function DashboardPage() {
                               <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
                                 <div className="flex items-center">
                                   <DollarSign className="w-4 h-4 mr-1" />
-                                  Teklif: {bid.proposedAmount} TL
+                                  Teklif: {bid.amount} TL
                                 </div>
                                 <div className="flex items-center">
                                   <Calendar className="w-4 h-4 mr-1" />
-                                  {bid.estimatedDays} gün
+                                  {bid.estimatedDuration?.value || 'Belirtilmemiş'} gün
                                 </div>
                                 <div className="flex items-center">
                                   <Star className="w-4 h-4 mr-1" />
@@ -565,6 +655,252 @@ export default function DashboardPage() {
                 </div>
               </>
             )}
+
+            {/* Bireysel Kullanıcı Dashboard */}
+            {isIndividual && (
+              <>
+                {/* Eşya Taşıma İsteklerim */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-gray-900">Eşya Taşıma İsteklerim</h2>
+                    <Link 
+                      href="/jobs/create"
+                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Yeni İstek
+                    </Link>
+                  </div>
+                  
+                  {loading ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="animate-pulse">
+                          <div className="h-20 bg-gray-200 rounded-lg"></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : myJobs.length > 0 ? (
+                    <div className="space-y-4">
+                      {myJobs.slice(0, 5).map((job) => (
+                        <div key={job._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900 mb-1">{job.title}</h3>
+                              <p className="text-gray-600 text-sm mb-2">{job.description}</p>
+                              <div className="flex items-center space-x-4 text-sm text-gray-500">
+                                <div className="flex items-center">
+                                  <MapPin className="w-4 h-4 mr-1" />
+                                  {job.route?.from?.city} → {job.route?.to?.city}
+                                </div>
+                                <div className="flex items-center">
+                                  <DollarSign className="w-4 h-4 mr-1" />
+                                  {job.payment?.amount} {job.payment?.currency}
+                                </div>
+                                <div className="flex items-center">
+                                  <Users className="w-4 h-4 mr-1" />
+                                  {job.bids?.length || 0} Teklif
+                                </div>
+                                <div className="flex items-center">
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  {job.views || 0} Görüntüleme
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2 mt-2">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  job.status === 'active' ? 'bg-green-100 text-green-800' :
+                                  job.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                  job.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                  'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {job.status === 'active' ? 'Aktif' :
+                                   job.status === 'completed' ? 'Tamamlandı' :
+                                   job.status === 'cancelled' ? 'İptal Edildi' : 'Beklemede'}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(job.createdAt).toLocaleDateString('tr-TR')}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2 ml-4">
+                              <Link
+                                href={`/jobs/${job._id}`}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                              >
+                                Yönet
+                              </Link>
+                              <button
+                                onClick={() => handleCancelJob(job._id)}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                              >
+                                İptal Et
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Truck className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 mb-4">Henüz eşya taşıma isteğiniz yok</p>
+                      <Link
+                        href="/jobs/create"
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        İlk İsteğinizi Oluşturun
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Başvurularım - Geçici olarak gizlendi */}
+                {false && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-gray-900">Başvurularım</h2>
+                    <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                      {myBidsIndividual.length} Başvuru
+                    </span>
+                  </div>
+                  
+                  {loading ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="animate-pulse">
+                          <div className="h-24 bg-gray-200 rounded-lg"></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : myBidsIndividual.length > 0 ? (
+                    <div className="space-y-4">
+                      {myBidsIndividual.map((bid) => (
+                        <div key={bid._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900 mb-1">{bid.job?.title}</h3>
+                              <p className="text-gray-600 text-sm mb-2">{bid.job?.description}</p>
+                              <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
+                                <div className="flex items-center">
+                                  <MapPin className="w-4 h-4 mr-1" />
+                                  {bid.job?.route?.from?.city} → {bid.job?.route?.to?.city}
+                                </div>
+                                <div className="flex items-center">
+                                  <DollarSign className="w-4 h-4 mr-1" />
+                                  Teklifim: {bid.proposedAmount} TL
+                                </div>
+                                <div className="flex items-center">
+                                  <Calendar className="w-4 h-4 mr-1" />
+                                  {bid.estimatedDays} gün
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  bid.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  bid.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {bid.status === 'pending' ? 'Beklemede' :
+                                   bid.status === 'accepted' ? 'Kabul Edildi' : 'Reddedildi'}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(bid.createdAt).toLocaleDateString('tr-TR')}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="ml-4">
+                              <Link
+                                href={`/jobs/${bid.job?._id}`}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                              >
+                                Detay
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 mb-4">Henüz başvuru yapmadınız</p>
+                      <Link
+                        href="/jobs"
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      >
+                        <Search className="w-4 h-4 mr-2" />
+                        İş İlanlarını Görüntüle
+                      </Link>
+                    </div>
+                  )}
+                </div>
+                )}
+
+                {/* Önerilen İşler */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-gray-900">Önerilen İşler</h2>
+                    <Link 
+                      href="/jobs"
+                      className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                    >
+                      Tümünü Gör
+                    </Link>
+                  </div>
+                  
+                  {loading ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="animate-pulse">
+                          <div className="h-20 bg-gray-200 rounded-lg"></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : availableJobs.length > 0 ? (
+                    <div className="space-y-4">
+                      {availableJobs.slice(0, 3).map((job) => (
+                        <div key={job._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900 mb-1">{job.title}</h3>
+                              <p className="text-gray-600 text-sm mb-2">{job.description}</p>
+                              <div className="flex items-center space-x-4 text-sm text-gray-500">
+                                <div className="flex items-center">
+                                  <MapPin className="w-4 h-4 mr-1" />
+                                  {job.route?.from?.city} → {job.route?.to?.city}
+                                </div>
+                                <div className="flex items-center">
+                                  <DollarSign className="w-4 h-4 mr-1" />
+                                  {job.payment?.amount} {job.payment?.currency}
+                                </div>
+                                <div className="flex items-center">
+                                  <Calendar className="w-4 h-4 mr-1" />
+                                  {new Date(job.schedule?.startDate).toLocaleDateString('tr-TR')}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="ml-4">
+                              <Link
+                                href={`/jobs/${job._id}`}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                              >
+                                Detay
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">Şu anda önerilen iş bulunmuyor</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -709,9 +1045,21 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Bekleyen</span>
-                      <span className="font-semibold text-yellow-600">
-                        {myJobs.filter(job => job.status === 'pending').length}
+                      <span className="text-gray-600">Toplam Teklif</span>
+                      <span className="font-semibold text-blue-600">
+                        {myJobs.reduce((sum, job) => sum + (job.bids?.length || 0), 0)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Başvurularım</span>
+                      <span className="font-semibold text-purple-600">
+                        {myBidsIndividual.length}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Toplam Görüntüleme</span>
+                      <span className="font-semibold text-gray-900">
+                        {myJobs.reduce((sum, job) => sum + (job.views || 0), 0)}
                       </span>
                     </div>
                   </>

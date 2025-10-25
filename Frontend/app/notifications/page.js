@@ -47,6 +47,8 @@ export default function NotificationsPage() {
       return;
     }
     
+    console.log('Loading notifications for user:', user);
+    // Only load if we don't have recent data (cache will handle this)
     loadNotifications();
   }, [isAuthenticated, user, initialized, router, loadNotifications]);
 
@@ -125,16 +127,51 @@ export default function NotificationsPage() {
     }
   };
 
+  const handleBidAction = async (bidId, action) => {
+    console.log('handleBidAction called with:', { bidId, action });
+    try {
+      const token = localStorage.getItem('token');
+      console.log('Token:', token ? 'exists' : 'missing');
+      
+      const response = await fetch(`http://localhost:5001/api/bids/${bidId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: action })
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Success result:', result);
+        toast.success(result.message);
+        // Reload notifications to show updated status
+        loadNotifications();
+      } else {
+        const error = await response.json();
+        console.error('Error response:', error);
+        toast.error(error.message || 'İşlem başarısız');
+      }
+    } catch (error) {
+      console.error('Bid action error:', error);
+      toast.error('İşlem sırasında hata oluştu');
+    }
+  };
+
   if (!isAuthenticated || !user) {
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       <Toaster />
       
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -153,15 +190,23 @@ export default function NotificationsPage() {
               </div>
             </div>
             
-            {unreadCount > 0 && (
+            <div className="flex items-center space-x-2">
               <button
-                onClick={handleMarkAllAsRead}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                onClick={() => loadNotifications(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >
-                <CheckCheck className="w-4 h-4" />
-                <span>Tümünü Okundu İşaretle</span>
+                <span>Yenile</span>
               </button>
-            )}
+              {unreadCount > 0 && (
+                <button
+                  onClick={handleMarkAllAsRead}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <CheckCheck className="w-4 h-4" />
+                  <span>Tümünü Okundu İşaretle</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -195,7 +240,9 @@ export default function NotificationsPage() {
                 </p>
               </div>
             ) : (
-              notifications.map((notification) => (
+              notifications.map((notification) => {
+                console.log('Rendering notification:', notification);
+                return (
                 <div
                   key={notification._id}
                   className={`bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow ${
@@ -226,6 +273,40 @@ export default function NotificationsPage() {
                         <p className="text-gray-700 mb-3">
                           {notification.message}
                         </p>
+                        
+                        {/* Bid Action Buttons for bid_received notifications */}
+                        {notification.type === 'bid_received' && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="text-sm font-medium text-blue-900 mb-1">
+                                  Teklif Onaylama
+                                </h4>
+                                <p className="text-xs text-blue-700">
+                                  Bu teklife cevap verebilirsiniz
+                                </p>
+                              </div>
+                              {notification.data?.bidId && (
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={() => handleBidAction(notification.data.bidId, 'accepted')}
+                                    className="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium flex items-center space-x-1"
+                                  >
+                                    <CheckCircle className="w-4 h-4" />
+                                    <span>Kabul Et</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleBidAction(notification.data.bidId, 'rejected')}
+                                    className="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium flex items-center space-x-1"
+                                  >
+                                    <XCircle className="w-4 h-4" />
+                                    <span>Reddet</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                         
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
                           <span className="flex items-center space-x-1">
@@ -262,7 +343,8 @@ export default function NotificationsPage() {
                     </div>
                   </div>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         )}

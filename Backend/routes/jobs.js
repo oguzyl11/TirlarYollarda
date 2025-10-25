@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
 const Job = require('../models/Job');
 const auth = require('../middleware/auth');
@@ -170,7 +171,7 @@ router.post('/', auth, [
         }
 
         const jobData = req.body;
-        jobData.postedBy = req.user.userId; // Gerçek kullanıcı ID'sini kullan
+        jobData.postedBy = req.user.userId;
 
         // Date string'lerini Date objelerine çevir
         if (jobData.schedule?.startDate) {
@@ -204,9 +205,32 @@ router.post('/', auth, [
         });
     } catch (error) {
         console.error('Create job error:', error);
+        
+        // Mongoose validation error
+        if (error.name === 'ValidationError') {
+            const errors = Object.values(error.errors).map(err => ({
+                field: err.path,
+                message: err.message
+            }));
+            return res.status(400).json({
+                success: false,
+                message: 'Veri doğrulama hatası',
+                errors: errors
+            });
+        }
+        
+        // Duplicate key error
+        if (error.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bu veri zaten mevcut'
+            });
+        }
+        
         res.status(500).json({
             success: false,
-            message: 'İlan oluşturulurken hata oluştu'
+            message: 'İlan oluşturulurken hata oluştu',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
@@ -253,7 +277,7 @@ router.put('/:id', auth, async (req, res) => {
         }
 
         // Check if user owns the job
-        if (job.postedBy.toString() !== req.user.userId) {
+        if (job.postedBy.toString() !== req.user.userId.toString()) {
             return res.status(403).json({
                 success: false,
                 message: 'Bu işi düzenleme yetkiniz yok'
@@ -300,7 +324,7 @@ router.delete('/:id', auth, async (req, res) => {
         }
 
         // Check if user owns the job
-        if (job.postedBy.toString() !== req.user.userId) {
+        if (job.postedBy.toString() !== req.user.userId.toString()) {
             return res.status(403).json({
                 success: false,
                 message: 'Bu işi silme yetkiniz yok'

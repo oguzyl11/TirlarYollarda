@@ -66,6 +66,14 @@ const userSchema = new mongoose.Schema({
         companyName: String,
         taxNumber: String,
         companyAddress: String,
+        address: String,
+        companyType: String,
+        establishedYear: Number,
+        description: String,
+        website: String,
+        specialties: [String],
+        employeeCount: String,
+        workingHours: String,
         postedJobs: {
             type: Number,
             default: 0

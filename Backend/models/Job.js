@@ -51,8 +51,7 @@ const jobSchema = new mongoose.Schema({
     },
     loadDetails: {
         type: {
-            type: String,
-            enum: ['Parsiyel', 'Konteyner', 'Dorse', 'Frigo', 'Tanker', 'Diğer', 'Tam Yük', 'Kargo']
+            type: String
         },
         weight: String,
         dimensions: {
@@ -65,8 +64,7 @@ const jobSchema = new mongoose.Schema({
     },
     vehicleRequirements: {
         type: {
-            type: String,
-            enum: ['Tır', 'Kamyon', 'Çekici', 'Kamyonet', 'Frigo', 'Tanker']
+            type: String
         },
         capacity: String,
         minCapacity: Number,
@@ -94,11 +92,6 @@ const jobSchema = new mongoose.Schema({
         currency: {
             type: String,
             default: 'TL'
-        },
-        paymentType: {
-            type: String,
-            enum: ['fixed', 'per-km', 'negotiable'],
-            default: 'negotiable'
         },
         paymentMethod: {
             type: String,

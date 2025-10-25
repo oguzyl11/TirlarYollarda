@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Truck, Menu, X, User, LogOut, Bell } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import useNotificationStore from '../store/notificationStore';
+import RateLimitDebug from './RateLimitDebug';
 
 export default function Header() {
   const router = useRouter();
@@ -27,7 +28,7 @@ export default function Header() {
   // Load notifications when user is authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      loadNotifications();
+      loadNotifications(true); // Force initial load
       startPolling();
     } else {
       stopPolling();
@@ -254,6 +255,9 @@ export default function Header() {
           </div>
         )}
       </div>
+      
+      {/* Debug component - remove in production */}
+      {process.env.NODE_ENV === 'development' && <RateLimitDebug />}
     </header>
   );
 }

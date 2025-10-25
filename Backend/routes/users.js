@@ -40,8 +40,7 @@ router.get('/companies', async (req, res) => {
         console.log('Get companies request');
         
         const companies = await User.find({ 
-            userType: 'employer',
-            verified: true 
+            userType: 'employer'
         })
         .select('profile employerDetails rating createdAt')
         .sort({ createdAt: -1 });
@@ -67,7 +66,7 @@ router.get('/companies/:id', async (req, res) => {
         console.log('Get company details for ID:', req.params.id);
 
         const company = await User.findById(req.params.id)
-            .select('profile employerDetails rating createdAt');
+            .select('profile employerDetails rating createdAt userType');
 
         if (!company || company.userType !== 'employer') {
             return res.status(404).json({
@@ -102,14 +101,16 @@ router.get('/companies/:id', async (req, res) => {
                 completedJobs,
                 activeDrivers: 0, // This would need to be calculated based on your business logic
                 yearsExperience: new Date().getFullYear() - (company.employerDetails?.establishedYear || 2020)
-            },
-            recentJobs: jobs,
-            recentReviews: reviews
+            }
         };
 
         res.json({
             success: true,
-            data: companyData
+            data: {
+                company: companyData,
+                jobs: jobs,
+                reviews: reviews
+            }
         });
     } catch (error) {
         console.error('Get company details error:', error);
@@ -128,8 +129,7 @@ router.get('/drivers', async (req, res) => {
         console.log('Get drivers request');
         
         const drivers = await User.find({ 
-            userType: 'driver',
-            verified: true 
+            userType: 'driver'
         })
         .select('profile driverDetails rating createdAt')
         .sort({ createdAt: -1 });

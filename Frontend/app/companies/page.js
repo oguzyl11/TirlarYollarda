@@ -37,10 +37,18 @@ export default function CompaniesPage() {
   const loadCompanies = async () => {
     try {
       setLoading(true);
+      console.log('API çağrısı başlatılıyor...');
+      console.log('API URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api');
       const response = await userAPI.getCompanies();
+      console.log('API yanıtı:', response);
+      console.log('Response data:', response.data);
+      console.log('Companies array:', response.data.data);
       setCompanies(response.data.data);
     } catch (error) {
       console.error('Şirketler yüklenemedi:', error);
+      console.error('Error details:', error.response?.data);
+      console.error('Error message:', error.message);
+      console.error('Error status:', error.response?.status);
       toast.error('Şirketler yüklenirken hata oluştu');
     } finally {
       setLoading(false);
@@ -69,7 +77,7 @@ export default function CompaniesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Toaster position="top-right" />
       <Header />
 
@@ -154,8 +162,8 @@ export default function CompaniesPage() {
       </section>
 
       {/* Companies Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="flex-1 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           {/* Results Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -200,11 +208,15 @@ export default function CompaniesPage() {
                           <h3 className="font-bold text-gray-800 truncate text-lg group-hover:text-blue-600 transition-colors">
                             {company.employerDetails?.companyName || 'Şirket Adı'}
                           </h3>
-                          {company.verified && (
-                            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                          {company.verified ? (
+                            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center" title="Doğrulanmış Şirket">
                               <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
+                            </span>
+                          ) : (
+                            <span className="flex-shrink-0 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full" title="Doğrulanmamış Şirket">
+                              Yeni
                             </span>
                           )}
                         </div>
