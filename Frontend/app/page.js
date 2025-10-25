@@ -152,29 +152,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-12 bg-white border-y border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-1">15,000+</div>
-              <div className="text-gray-600 text-sm">Aktif Kullanıcı</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-1">8,932</div>
-              <div className="text-gray-600 text-sm">Tamamlanan İş</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-1">4.8/5</div>
-              <div className="text-gray-600 text-sm">Memnuniyet</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-1">1,247</div>
-              <div className="text-gray-600 text-sm">Aktif İlan</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Stats - Removed fake statistics */}
 
       {/* Featured Jobs */}
       <section className="py-16">

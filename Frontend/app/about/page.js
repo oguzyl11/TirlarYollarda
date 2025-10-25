@@ -195,36 +195,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-800 mb-6">Rakamlarla LoadING</h2>
-            <p className="text-xl text-gray-600 leading-relaxed">
-              Platformumuzun başarı hikayesi
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300">
-              <div className="text-5xl font-bold mb-3 text-blue-600">15,000+</div>
-              <div className="text-gray-600 text-lg">Aktif Kullanıcı</div>
-            </div>
-            <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300">
-              <div className="text-5xl font-bold mb-3 text-green-600">8,932</div>
-              <div className="text-gray-600 text-lg">Tamamlanan İş</div>
-            </div>
-            <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300">
-              <div className="text-5xl font-bold mb-3 text-purple-600">4.8/5</div>
-              <div className="text-gray-600 text-lg">Memnuniyet Oranı</div>
-            </div>
-            <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300">
-              <div className="text-5xl font-bold mb-3 text-orange-600">1,247</div>
-              <div className="text-gray-600 text-lg">Aktif İlan</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Stats Section - Removed fake statistics */}
 
       {/* Team Section */}
       <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
