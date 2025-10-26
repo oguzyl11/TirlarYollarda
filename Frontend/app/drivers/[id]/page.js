@@ -6,7 +6,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
-import { userAPI } from '../../../lib/api';
+import { userAPI, reviewAPI, bidAPI } from '../../../lib/api';
+import { useAuthStore } from '../../../store/authStore';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -39,10 +40,25 @@ export default function DriverProfile() {
   const [jobs, setJobs] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    job: '',
+    rating: 5,
+    comment: '',
+    categories: {
+      communication: 5,
+      professionalism: 5,
+      punctuality: 5,
+      quality: 5
+    }
+  });
 
   useEffect(() => {
     if (params.id) {
       fetchDriverDetails();
+      checkFollowStatus();
     }
   }, [params.id]);
 
@@ -64,13 +80,98 @@ export default function DriverProfile() {
     }
   };
 
-  const handleFollow = () => {
-    setIsFollowing(!isFollowing);
+  const checkFollowStatus = async () => {
+    try {
+      const response = await userAPI.checkFollowing(params.id);
+      if (response.data.success) {
+        setIsFollowing(response.data.isFollowing);
+      }
+    } catch (error) {
+      console.error('Takip durumu kontrol edilemedi:', error);
+    }
   };
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    // Toast notification eklenebilir
+  const handleFollow = async () => {
+    try {
+      const response = await userAPI.followUser(params.id);
+      if (response.data.success) {
+        setIsFollowing(response.data.isFollowing);
+        setToastMessage(response.data.isFollowing ? 'Şoförü takip ediyorsunuz' : 'Takibi bıraktınız');
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+      }
+    } catch (error) {
+      console.error('Takip hatası:', error);
+      setToastMessage('İşlem gerçekleştirilemedi');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setToastMessage('Link kopyalandı!');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error('Kopyalama hatası:', error);
+      setToastMessage('Link kopyalanamadı');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
+  };
+
+  const handleMessage = () => {
+    router.push(`/messages?userId=${params.id}`);
+  };
+
+  const { user } = useAuthStore();
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    
+    // Validate that a job is selected
+    if (!reviewForm.job) {
+      setToastMessage('Lütfen bir iş seçin');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      return;
+    }
+    
+    try {
+      await reviewAPI.createReview({
+        reviewee: params.id,
+        job: reviewForm.job,
+        rating: reviewForm.rating,
+        comment: reviewForm.comment,
+        categories: reviewForm.categories
+      });
+
+      setToastMessage('Değerlendirme başarıyla gönderildi!');
+      setShowToast(true);
+      setShowReviewForm(false);
+      setReviewForm({
+        job: '',
+        rating: 5,
+        comment: '',
+        categories: {
+          communication: 5,
+          professionalism: 5,
+          punctuality: 5,
+          quality: 5
+        }
+      });
+      
+      // Refresh reviews
+      fetchDriverDetails();
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error('Değerlendirme hatası:', error);
+      setToastMessage(error.response?.data?.message || 'Değerlendirme gönderilemedi');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
   };
 
   if (loading) {
@@ -113,6 +214,15 @@ export default function DriverProfile() {
   return (
     <>
       <Header />
+      
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed top-20 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center space-x-2 animate-fade-in">
+          <CheckCircle className="w-5 h-5" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
@@ -211,10 +321,15 @@ export default function DriverProfile() {
                 <button
                   onClick={handleShare}
                   className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                  title="Paylaş"
                 >
                   <Share2 className="w-5 h-5 text-gray-600" />
                 </button>
-                <button className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
+                <button 
+                  onClick={handleMessage}
+                  className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                  title="Mesaj Gönder"
+                >
                   <MessageCircle className="w-5 h-5 text-gray-600" />
                 </button>
               </div>
@@ -443,6 +558,123 @@ export default function DriverProfile() {
             {/* Reviews Tab */}
             {activeTab === 'reviews' && (
               <div className="space-y-6">
+                {/* Add Review Button */}
+                {user && user.userType !== 'driver' && (
+                  <div className="flex justify-end mb-4">
+                    <button
+                      onClick={() => setShowReviewForm(!showReviewForm)}
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      {showReviewForm ? 'İptal' : 'Değerlendirme Yap'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Review Form */}
+                {showReviewForm && (
+                  <div className="bg-white border border-gray-200 rounded-xl p-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Değerlendirme Yap</h3>
+                    <form onSubmit={submitReview} className="space-y-4">
+                      {/* Job Selection */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-2">İş Seçin</label>
+                        <select
+                          value={reviewForm.job}
+                          onChange={(e) => setReviewForm({ ...reviewForm, job: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          required
+                        >
+                          <option value="">İş seçin...</option>
+                          {jobs.map((job) => (
+                            <option key={job._id} value={job._id}>
+                              {job.title || `İş #${job._id.substring(0, 8)}`}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Rating */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-2">Genel Puan</label>
+                        <div className="flex items-center space-x-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                              className="focus:outline-none"
+                            >
+                              <Star
+                                className={`w-6 h-6 ${
+                                  star <= reviewForm.rating
+                                    ? 'text-yellow-400 fill-current'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            </button>
+                          ))}
+                          <span className="ml-2 text-sm text-gray-800 font-medium">{reviewForm.rating}/5</span>
+                        </div>
+                      </div>
+
+                      {/* Comment */}
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-2">Yorumunuz</label>
+                        <textarea
+                          value={reviewForm.comment}
+                          onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          rows="4"
+                          placeholder="Bu şoför hakkında değerlendirmenizi yazın..."
+                          required
+                        />
+                      </div>
+
+                      {/* Categories */}
+                      <div>
+                        <label className="block text-base font-bold text-gray-900 mb-3">Kategorik Değerlendirmeler</label>
+                        <div className="grid grid-cols-2 gap-4">
+                          {Object.entries(reviewForm.categories).map(([key, value]) => (
+                            <div key={key}>
+                              <label className="block text-sm font-bold text-gray-900 mb-2 capitalize">{key}</label>
+                              <div className="flex items-center space-x-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() =>
+                                      setReviewForm({
+                                        ...reviewForm,
+                                        categories: { ...reviewForm.categories, [key]: star }
+                                      })
+                                    }
+                                    className="focus:outline-none"
+                                  >
+                                    <Star
+                                      className={`w-5 h-5 ${
+                                        star <= value
+                                          ? 'text-yellow-400 fill-current'
+                                          : 'text-gray-300'
+                                      }`}
+                                    />
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        Değerlendirmeyi Gönder
+                      </button>
+                    </form>
+                  </div>
+                )}
+
                 {reviews.length > 0 ? (
                   reviews.map((review) => (
                     <div key={review._id} className="border border-gray-200 rounded-xl p-6">
@@ -455,7 +687,7 @@ export default function DriverProfile() {
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
                             <h4 className="font-semibold text-gray-800">{review.reviewer?.name}</h4>
-                            <span className="text-sm text-gray-500">({review.reviewer?.company})</span>
+                            <span className="text-sm text-gray-600">({review.reviewer?.company})</span>
                             <div className="flex items-center space-x-1">
                               {[...Array(5)].map((_, i) => (
                                 <Star
@@ -468,10 +700,10 @@ export default function DriverProfile() {
                             </div>
                           </div>
                           <p className="text-gray-700 mb-3">{review.comment}</p>
-                          <div className="text-sm text-gray-500 mb-2">
+                          <div className="text-sm text-gray-600 mb-2">
                             <span className="font-medium">İş:</span> {review.jobTitle}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-600">
                             {new Date(review.createdAt).toLocaleDateString('tr-TR')}
                           </div>
                         </div>

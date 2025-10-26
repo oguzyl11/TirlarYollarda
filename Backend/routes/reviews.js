@@ -18,8 +18,10 @@ router.post('/', auth, [
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            console.error('Validation errors:', errors.array());
             return res.status(400).json({
                 success: false,
+                message: 'GeÃ§ersiz veri. LÃ¼tfen tÃ¼m alanlarÄ± doldurun.',
                 errors: errors.array()
             });
         }
@@ -28,10 +30,16 @@ router.post('/', auth, [
 
         // Check if job is completed
         const jobData = await Job.findById(job);
-        if (!jobData || jobData.status !== 'completed') {
+        if (!jobData) {
             return res.status(400).json({
                 success: false,
-                message: 'Sadece tamamlanan iþler için yorum yapýlabilir'
+                message: 'Ä°ÅŸ bulunamadÄ±. LÃ¼tfen geÃ§erli bir iÅŸ seÃ§in.'
+            });
+        }
+        if (jobData.status !== 'completed') {
+            return res.status(400).json({
+                success: false,
+                message: 'Sadece tamamlanan iï¿½ler iï¿½in yorum yapï¿½labilir'
             });
         }
 
@@ -45,7 +53,7 @@ router.post('/', auth, [
         if (existingReview) {
             return res.status(400).json({
                 success: false,
-                message: 'Bu iþ için zaten yorum yaptýnýz'
+                message: 'Bu iï¿½ iï¿½in zaten yorum yaptï¿½nï¿½z'
             });
         }
 
@@ -53,7 +61,7 @@ router.post('/', auth, [
         if (reviewee === req.user.userId) {
             return res.status(400).json({
                 success: false,
-                message: 'Kendinize yorum yapamazsýnýz'
+                message: 'Kendinize yorum yapamazsï¿½nï¿½z'
             });
         }
 
@@ -74,14 +82,14 @@ router.post('/', auth, [
 
         res.status(201).json({
             success: true,
-            message: 'Yorum baþarýyla oluþturuldu',
+            message: 'Yorum baï¿½arï¿½yla oluï¿½turuldu',
             data: populatedReview
         });
     } catch (error) {
         console.error('Create review error:', error);
         res.status(500).json({
             success: false,
-            message: 'Yorum oluþturulurken hata oluþtu'
+            message: 'Yorum oluï¿½turulurken hata oluï¿½tu'
         });
     }
 });
@@ -133,7 +141,7 @@ router.get('/user/:userId', async (req, res) => {
         console.error('Get reviews error:', error);
         res.status(500).json({
             success: false,
-            message: 'Yorumlar getirilirken hata oluþtu'
+            message: 'Yorumlar getirilirken hata oluï¿½tu'
         });
     }
 });

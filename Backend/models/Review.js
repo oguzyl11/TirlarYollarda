@@ -19,8 +19,8 @@ const reviewSchema = new mongoose.Schema({
     rating: {
         type: Number,
         required: [true, 'Puan gereklidir'],
-        min: [1, 'Puan en az 1 olmalýdýr'],
-        max: [5, 'Puan en fazla 5 olmalýdýr']
+        min: [1, 'Puan en az 1 olmalï¿½dï¿½r'],
+        max: [5, 'Puan en fazla 5 olmalï¿½dï¿½r']
     },
     comment: {
         type: String,
@@ -75,25 +75,41 @@ reviewSchema.index({ reviewee: 1, createdAt: -1 });
 
 // Update user rating after review
 reviewSchema.post('save', async function () {
-    const Review = this.constructor;
-    const User = mongoose.model('User');
+    try {
+        const Review = this.constructor;
+        const User = mongoose.model('User');
 
-    const stats = await Review.aggregate([
-        { $match: { reviewee: this.reviewee } },
-        {
-            $group: {
-                _id: null,
-                averageRating: { $avg: '$rating' },
-                count: { $sum: 1 }
+        // Convert reviewee to ObjectId if it's a string
+        const revieweeId = mongoose.Types.ObjectId.isValid(this.reviewee) 
+            ? new mongoose.Types.ObjectId(this.reviewee) 
+            : this.reviewee;
+
+        const stats = await Review.aggregate([
+            { $match: { reviewee: revieweeId } },
+            {
+                $group: {
+                    _id: null,
+                    averageRating: { $avg: '$rating' },
+                    count: { $sum: 1 }
+                }
             }
-        }
-    ]);
+        ]);
 
-    if (stats.length > 0) {
-        await User.findByIdAndUpdate(this.reviewee, {
-            'rating.average': Math.round(stats[0].averageRating * 10) / 10,
-            'rating.count': stats[0].count
-        });
+        if (stats.length > 0) {
+            await User.findByIdAndUpdate(revieweeId, {
+                'rating.average': Math.round(stats[0].averageRating * 10) / 10,
+                'rating.count': stats[0].count
+            });
+        } else {
+            // If no reviews exist yet, set default values
+            await User.findByIdAndUpdate(revieweeId, {
+                'rating.average': 0,
+                'rating.count': 0
+            });
+        }
+    } catch (error) {
+        console.error('Error updating user rating:', error);
+        // Don't throw error to prevent saving review from failing
     }
 });
 

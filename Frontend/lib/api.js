@@ -149,6 +149,11 @@ export const userAPI = {
     () => api.get(`/users/drivers/${id}`),
     `getDriverDetails_${id}`
   ),
+  followUser: (id) => api.post(`/users/${id}/follow`),
+  checkFollowing: (id) => rateLimitedApiCall(
+    () => api.get(`/users/${id}/following`),
+    `checkFollowing_${id}`
+  ),
 };
 
 export const reviewAPI = {

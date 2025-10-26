@@ -155,7 +155,7 @@ router.get('/drivers/:id', async (req, res) => {
         console.log('Get driver details for ID:', req.params.id);
 
         const driver = await User.findById(req.params.id)
-            .select('profile driverDetails rating createdAt');
+            .select('profile driverDetails rating createdAt userType email');
 
         if (!driver || driver.userType !== 'driver') {
             return res.status(404).json({
@@ -165,13 +165,37 @@ router.get('/drivers/:id', async (req, res) => {
         }
 
         // Get driver's completed jobs
-        const completedJobs = await Job.find({ 
-            'bids.driver': req.params.id,
-            status: 'completed'
-        })
-        .select('title route loadDetails payment schedule')
-        .sort({ createdAt: -1 })
-        .limit(10);
+        // First, find all completed jobs with accepted bids
+        const jobsWithAcceptedBids = await Job.find({ 
+            status: 'completed',
+            acceptedBid: { $exists: true }
+        }).populate({
+            path: 'acceptedBid',
+            populate: {
+                path: 'bidder',
+                select: 'profile driverDetails'
+            }
+        });
+
+        // Filter to find jobs where the driver's bid was accepted
+        const completedJobs = jobsWithAcceptedBids
+            .filter(job => {
+                if (!job.acceptedBid || !job.acceptedBid.bidder) return false;
+                const bidderId = job.acceptedBid.bidder._id ? job.acceptedBid.bidder._id.toString() : job.acceptedBid.bidder.toString();
+                return bidderId === req.params.id;
+            })
+            .map(job => ({
+                _id: job._id,
+                title: job.title,
+                description: job.description,
+                route: job.route,
+                loadDetails: job.loadDetails,
+                payment: job.payment,
+                schedule: job.schedule,
+                completedAt: job.updatedAt,
+                rating: 5 // Default rating
+            }))
+            .slice(0, 10);
 
         // Get driver's reviews
         const reviews = await Review.find({ reviewee: req.params.id })
@@ -184,15 +208,19 @@ router.get('/drivers/:id', async (req, res) => {
             stats: {
                 completedJobs: completedJobs.length,
                 totalJobs: completedJobs.length,
+                onTimeDelivery: 95, // Default value
+                customerSatisfaction: 98, // Default value
                 yearsExperience: new Date().getFullYear() - (driver.driverDetails?.licenseYear || 2020)
-            },
-            recentJobs: completedJobs,
-            recentReviews: reviews
+            }
         };
 
         res.json({
             success: true,
-            data: driverData
+            data: {
+                driver: driverData,
+                jobs: completedJobs,
+                reviews: reviews
+            }
         });
     } catch (error) {
         console.error('Get driver details error:', error);
@@ -225,15 +253,26 @@ router.put('/profile', auth, upload.single('profileImage'), async (req, res) => 
 
         // Add profile image if uploaded
         if (req.file) {
+            // Merge profile data with profileImage
             updateData.profile = {
                 ...profileData,
                 profileImage: `/uploads/profiles/${req.file.filename}`
             };
         } else if (req.body.existingProfileImage) {
+            // Preserve existing profileImage if provided
             updateData.profile = {
                 ...profileData,
                 profileImage: req.body.existingProfileImage
             };
+        } else {
+            // If no image provided but profile data exists, keep existing profileImage
+            const existingUser = await User.findById(req.user.userId);
+            if (existingUser && existingUser.profile && existingUser.profile.profileImage) {
+                updateData.profile = {
+                    ...profileData,
+                    profileImage: existingUser.profile.profileImage
+                };
+            }
         }
 
         const user = await User.findByIdAndUpdate(
@@ -261,6 +300,91 @@ router.put('/profile', auth, upload.single('profileImage'), async (req, res) => 
         res.status(500).json({
             success: false,
             message: 'Profil güncellenirken hata oluştu'
+        });
+    }
+});
+
+// @route   POST /api/users/:id/follow
+// @desc    Follow/Unfollow a user
+// @access  Private
+router.post('/:id/follow', auth, async (req, res) => {
+    try {
+        const targetUserId = req.params.id;
+        const currentUserId = req.user.userId;
+
+        if (targetUserId === currentUserId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Kendinizi takip edemezsiniz'
+            });
+        }
+
+        const currentUser = await User.findById(currentUserId);
+        const targetUser = await User.findById(targetUserId);
+
+        if (!targetUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+        }
+
+        const isFollowing = currentUser.following.some(
+            id => id.toString() === targetUserId
+        );
+
+        if (isFollowing) {
+            // Unfollow
+            currentUser.following = currentUser.following.filter(
+                id => id.toString() !== targetUserId
+            );
+            targetUser.followers = targetUser.followers.filter(
+                id => id.toString() !== currentUserId
+            );
+        } else {
+            // Follow
+            currentUser.following.push(targetUserId);
+            targetUser.followers.push(currentUserId);
+        }
+
+        await currentUser.save();
+        await targetUser.save();
+
+        res.json({
+            success: true,
+            message: isFollowing ? 'Takibi bıraktınız' : 'Takip ediliyor',
+            isFollowing: !isFollowing
+        });
+    } catch (error) {
+        console.error('Follow/Unfollow error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'İşlem gerçekleştirilirken hata oluştu'
+        });
+    }
+});
+
+// @route   GET /api/users/:id/following
+// @desc    Check if current user is following a user
+// @access  Private
+router.get('/:id/following', auth, async (req, res) => {
+    try {
+        const currentUser = await User.findById(req.user.userId)
+            .select('following');
+        
+        const isFollowing = currentUser.following.some(
+            id => id.toString() === req.params.id
+        );
+
+        res.json({
+            success: true,
+            isFollowing
+        });
+    } catch (error) {
+        console.error('Check following error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Durum kontrol edilirken hata oluştu'
         });
     }
 });

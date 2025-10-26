@@ -42,6 +42,9 @@ const userSchema = new mongoose.Schema({
             type: String,
             default: 'default-avatar.png'
         },
+        profileImage: {
+            type: String
+        },
         bio: String
     },
     driverDetails: {
@@ -66,14 +69,6 @@ const userSchema = new mongoose.Schema({
         companyName: String,
         taxNumber: String,
         companyAddress: String,
-        address: String,
-        companyType: String,
-        establishedYear: Number,
-        description: String,
-        website: String,
-        specialties: [String],
-        employeeCount: String,
-        workingHours: String,
         postedJobs: {
             type: Number,
             default: 0
@@ -148,6 +143,14 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    following: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    followers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     lastLogin: Date,
     resetPasswordToken: String,
     resetPasswordExpiry: Date,
@@ -184,12 +187,15 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 // Get full name
 userSchema.virtual('fullName').get(function () {
     return `${this.profile.firstName} ${this.profile.lastName}`;
-
 });
+
+// Set virtual to true to include in JSON
+userSchema.set('toJSON', { virtuals: true });
+userSchema.set('toObject', { virtuals: true });
 
 // Exclude password from JSON responses
 userSchema.methods.toJSON = function () {
-    const obj = this.toObject();
+    const obj = this.toObject({ virtuals: true });
     delete obj.password;
     return obj;
 };

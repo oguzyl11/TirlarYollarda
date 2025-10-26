@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, MapPin, Truck, Package, Star, TrendingUp, Users, Building2, ChevronRight, Clock, DollarSign, ChevronDown } from 'lucide-react';
+import { Search, MapPin, Truck, Package, Star, TrendingUp, Users, Building2, ChevronRight, Clock, DollarSign, ChevronDown, Briefcase } from 'lucide-react';
 import { jobAPI, userAPI } from '../lib/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -15,6 +15,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCity, setSearchCity] = useState('');
   const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('');
+  const [allJobs, setAllJobs] = useState([]);
 
   // Türkiye'nin büyük şehirleri
   const cities = [
@@ -51,10 +53,12 @@ export default function Home() {
 
   const loadJobs = async () => {
     try {
-      const response = await jobAPI.getJobs({ limit: 6 });
-      setRecentJobs(response.data.data);
+      const response = await jobAPI.getJobs({ limit: 20 });
+      const jobs = response.data.data || [];
+      setAllJobs(jobs);
+      setRecentJobs(jobs);
       // Featured jobs simülasyonu (gerçekte featured flag'e göre çekilecek)
-      setFeaturedJobs(response.data.data.slice(0, 3));
+      setFeaturedJobs(jobs.slice(0, 3));
     } catch (error) {
       console.error('İlanlar yüklenemedi:', error);
     }
@@ -64,18 +68,50 @@ export default function Home() {
     try {
       // Popüler şirketleri çek
       const companiesResponse = await userAPI.getCompanies();
-      const topCompanies = companiesResponse.data.data
-        .filter(company => (company.rating?.average || 0) >= 4.0)
-        .sort((a, b) => (b.rating?.average || 0) - (a.rating?.average || 0))
+      console.log('Companies response:', companiesResponse.data);
+      
+      // Şirketleri rating'e göre sırala (rating >= 3.5 olanları al, yoksa en yeni yüksek rating'i seç)
+      const allCompanies = companiesResponse.data.data || [];
+      const topCompanies = allCompanies
+        .filter(company => {
+          const rating = company.rating?.average || 0;
+          const hasRating = company.rating?.count > 0;
+          // Rating'i olan veya yeni şirketleri göster
+          return rating >= 3.5 || !hasRating;
+        })
+        .sort((a, b) => {
+          // Önce rating'e göre, sonra tarih'e göre sırala
+          const ratingDiff = (b.rating?.average || 0) - (a.rating?.average || 0);
+          if (ratingDiff !== 0) return ratingDiff;
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        })
         .slice(0, 4);
+      
+      console.log('Top companies:', topCompanies);
       setPopularCompanies(topCompanies);
 
       // Popüler şoförleri çek
       const driversResponse = await userAPI.getDrivers();
-      const topDrivers = driversResponse.data.data
-        .filter(driver => (driver.rating?.average || 0) >= 4.0)
-        .sort((a, b) => (b.rating?.average || 0) - (a.rating?.average || 0))
+      console.log('Drivers response:', driversResponse.data);
+      
+      // Şoförleri rating'e göre sırala (rating >= 3.5 olanları al, yoksa en yeni yüksek rating'i seç)
+      const allDrivers = driversResponse.data.data || [];
+      const topDrivers = allDrivers
+        .filter(driver => {
+          const rating = driver.rating?.average || 0;
+          const hasRating = driver.rating?.count > 0;
+          // Rating'i olan veya yeni şoförleri göster
+          return rating >= 3.5 || !hasRating;
+        })
+        .sort((a, b) => {
+          // Önce rating'e göre, sonra tarih'e göre sırala
+          const ratingDiff = (b.rating?.average || 0) - (a.rating?.average || 0);
+          if (ratingDiff !== 0) return ratingDiff;
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        })
         .slice(0, 4);
+      
+      console.log('Top drivers:', topDrivers);
       setPopularDrivers(topDrivers);
     } catch (error) {
       console.error('Popüler veriler yüklenemedi:', error);
@@ -100,6 +136,24 @@ export default function Home() {
     e.preventDefault();
     // Arama sayfasına yönlendir
     window.location.href = `/jobs?search=${searchQuery}&city=${searchCity}`;
+  };
+
+  // Filtre değiştirme fonksiyonu
+  const handleFilterClick = (filterType) => {
+    if (activeFilter === filterType) {
+      // Aynı filtrenin tekrar tıklanması filtreyi kaldırır
+      setActiveFilter('');
+      setFeaturedJobs(allJobs.slice(0, 3));
+      setRecentJobs(allJobs);
+    } else {
+      // Yeni filtre uygula
+      setActiveFilter(filterType);
+      const filtered = allJobs.filter(job => 
+        job.loadDetails?.type?.toLowerCase().includes(filterType.toLowerCase())
+      );
+      setFeaturedJobs(filtered.slice(0, 3));
+      setRecentJobs(filtered);
+    }
   };
 
   return (
@@ -168,13 +222,17 @@ export default function Home() {
           {/* Quick Filters */}
           <div className="max-w-4xl mx-auto mt-6 flex flex-wrap gap-2 justify-center">
             {['Parsiyel', 'Konteyner', 'Dorse', 'Frigo'].map((filter) => (
-              <Link
+              <button
                 key={filter}
-                href={`/jobs?loadType=${filter}`}
-                className="px-4 py-2 bg-white rounded-full text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition border border-gray-200"
+                onClick={() => handleFilterClick(filter)}
+                className={`px-4 py-2 rounded-full text-sm transition border ${
+                  activeFilter === filter
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-600 hover:text-blue-600 hover:bg-blue-50 border-gray-200'
+                }`}
               >
                 {filter}
-              </Link>
+              </button>
             ))}
           </div>
         </div>
@@ -197,9 +255,24 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {featuredJobs.map((job) => (
-              <JobCard key={job._id} job={job} featured />
-            ))}
+            {featuredJobs.length > 0 ? (
+              featuredJobs.map((job) => (
+                <JobCard key={job._id} job={job} featured />
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-12">
+                <Truck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-lg text-gray-600">Bu filtre için ilan bulunmuyor</p>
+                {activeFilter && (
+                  <button
+                    onClick={() => handleFilterClick('')}
+                    className="mt-4 text-blue-600 hover:text-blue-700 underline"
+                  >
+                    Filtreyi Temizle
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -219,9 +292,24 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            {recentJobs.map((job) => (
-              <JobCard key={job._id} job={job} />
-            ))}
+            {recentJobs.length > 0 ? (
+              recentJobs.map((job) => (
+                <JobCard key={job._id} job={job} />
+              ))
+            ) : (
+              <div className="col-span-2 text-center py-12">
+                <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-lg text-gray-600">Bu filtre için ilan bulunmuyor</p>
+                {activeFilter && (
+                  <button
+                    onClick={() => handleFilterClick('')}
+                    className="mt-4 text-blue-600 hover:text-blue-700 underline"
+                  >
+                    Filtreyi Temizle
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>

@@ -10,11 +10,11 @@ let circuitBreakerOpen = false;
 let circuitBreakerTimeout = null;
 let consecutiveFailures = 0;
 
-const MIN_REQUEST_INTERVAL = 2000; // 2 seconds between requests (balanced)
-const MAX_REQUESTS_PER_WINDOW = 50; // Maximum 50 requests per 15 minutes (reasonable)
+const MIN_REQUEST_INTERVAL = 100; // 100ms between requests (balanced)
+const MAX_REQUESTS_PER_WINDOW = 100; // Maximum 100 requests per 15 minutes (reasonable)
 const WINDOW_DURATION = 15 * 60 * 1000; // 15 minutes
-const MAX_CONSECUTIVE_FAILURES = 3; // Open circuit breaker after 3 failures
-const CIRCUIT_BREAKER_TIMEOUT = 5 * 60 * 1000; // 5 minutes circuit breaker timeout
+const MAX_CONSECUTIVE_FAILURES = 5; // Open circuit breaker after 5 failures
+const CIRCUIT_BREAKER_TIMEOUT = 2 * 60 * 1000; // 2 minutes circuit breaker timeout
 
 // Cache for API responses
 const apiCache = new Map();

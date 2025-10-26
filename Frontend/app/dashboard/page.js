@@ -974,7 +974,7 @@ export default function DashboardPage() {
                       <span className="text-gray-700">İsteklerim</span>
                     </Link>
                     <Link
-                      href="/jobs"
+                      href="/drivers"
                       className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       <Search className="w-5 h-5 text-blue-600 mr-3" />
